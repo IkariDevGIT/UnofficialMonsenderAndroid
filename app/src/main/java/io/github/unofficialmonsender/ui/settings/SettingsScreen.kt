@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -27,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.unofficialmonsender.R
+import io.github.unofficialmonsender.ui.components.MonBrandTitle
+import io.github.unofficialmonsender.ui.components.MonTopBar
 import io.github.unofficialmonsender.ui.components.SectionHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,7 +43,7 @@ fun SettingsScreen(
     val pairing by viewModel.pairing.collectAsStateWithLifecycle()
     val serviceRunning by viewModel.detectionRunning.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     LaunchedEffect(Unit) {
         viewModel.messages.collect { snackbar.showSnackbar(resources.getString(it)) }
@@ -57,12 +58,7 @@ fun SettingsScreen(
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(R.string.tab_settings)) },
-                scrollBehavior = scrollBehavior,
-            )
-        },
+        topBar = { MonTopBar(title = { MonBrandTitle() }, scrollBehavior = scrollBehavior) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         val current = settings
@@ -108,7 +104,7 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 28.dp, vertical = 28.dp),
+                        .padding(horizontal = 16.dp, vertical = 24.dp),
                 )
             }
         }

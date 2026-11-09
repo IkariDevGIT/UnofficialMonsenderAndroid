@@ -42,19 +42,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Warning
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -65,8 +61,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -96,6 +90,8 @@ import io.github.unofficialmonsender.R
 import io.github.unofficialmonsender.data.monloader.SendFailure
 import io.github.unofficialmonsender.data.monloader.SendResult
 import io.github.unofficialmonsender.data.monloader.SiteSupport
+import io.github.unofficialmonsender.ui.components.MonButton
+import io.github.unofficialmonsender.ui.theme.MonColors
 import io.github.unofficialmonsender.ui.theme.StatusColors
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -372,8 +368,8 @@ fun SendOverlay(
             ) {
                 if (touchExploration && canSwipe) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OutlinedButton(onClick = ::close) { Text(dismissLabel) }
-                        Button(onClick = ::startSend) { Text(sendLabel) }
+                        MonButton(dismissLabel, onClick = ::close)
+                        MonButton(sendLabel, onClick = ::startSend, accent = true)
                     }
                     Spacer(Modifier.height(20.dp))
                 }
@@ -401,17 +397,16 @@ private fun LinkCard(request: OverlayRequest, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .widthIn(max = 520.dp),
-        shape = RoundedCornerShape(28.dp),
-        color = colors.surfaceContainerHigh,
+        color = MonColors.surface,
+        border = BorderStroke(1.dp, MonColors.border),
         shadowElevation = 16.dp,
     ) {
-        Column(Modifier.padding(20.dp)) {
+        Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val title = request.siteName ?: request.host
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .clip(CircleShape)
                         .background(colors.primaryContainer),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -500,7 +495,7 @@ private fun SwipeArrow(color: Color, progress: () -> Float, bouncing: Boolean) {
             },
     ) {
         val p = progress()
-        val stroke = Stroke(width = 3.5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+        val stroke = Stroke(width = 3.5.dp.toPx(), cap = StrokeCap.Square, join = StrokeJoin.Miter)
         fun chevron(top: Float, alpha: Float) {
             val path = Path().apply {
                 moveTo(size.width * 0.18f, top + size.height * 0.3f)
@@ -540,8 +535,8 @@ private fun TopGlow(color: Color, intensity: () -> Float) {
 @Composable
 private fun StatusPill(text: String, leading: @Composable () -> Unit) {
     Surface(
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        color = MonColors.surface,
+        border = BorderStroke(1.dp, MonColors.border),
         shadowElevation = 8.dp,
     ) {
         Row(
@@ -559,11 +554,11 @@ private fun StatusPill(text: String, leading: @Composable () -> Unit) {
 private fun FailureCard(message: String, onRetry: () -> Unit, onClose: () -> Unit) {
     Surface(
         modifier = Modifier.widthIn(max = 400.dp),
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        color = MonColors.surface,
+        border = BorderStroke(1.dp, MonColors.danger),
         shadowElevation = 12.dp,
     ) {
-        Column(Modifier.padding(start = 20.dp, end = 12.dp, top = 20.dp, bottom = 8.dp)) {
+        Column(Modifier.padding(start = 18.dp, end = 18.dp, top = 18.dp, bottom = 14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                 Spacer(Modifier.width(12.dp))
@@ -579,11 +574,11 @@ private fun FailureCard(message: String, onRetry: () -> Unit, onClose: () -> Uni
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.End,
+                    .padding(top = 14.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
             ) {
-                TextButton(onClick = onClose) { Text(stringResource(R.string.action_close)) }
-                TextButton(onClick = onRetry) { Text(stringResource(R.string.action_try_again)) }
+                MonButton(stringResource(R.string.action_close), onClick = onClose)
+                MonButton(stringResource(R.string.action_try_again), onClick = onRetry, accent = true)
             }
         }
     }
@@ -598,9 +593,8 @@ private fun CountdownBar(fraction: () -> Float) {
             .width(64.dp)
             .height(3.dp),
     ) {
-        val r = CornerRadius(size.height / 2f)
-        drawRoundRect(track, cornerRadius = r)
-        drawRoundRect(fill, size = Size(size.width * fraction().coerceIn(0f, 1f), size.height), cornerRadius = r)
+        drawRect(track)
+        drawRect(fill, size = Size(size.width * fraction().coerceIn(0f, 1f), size.height))
     }
 }
 

@@ -1,11 +1,13 @@
 package io.github.unofficialmonsender.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -15,47 +17,80 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import io.github.unofficialmonsender.ui.theme.MonColors
+import io.github.unofficialmonsender.ui.theme.Wordmark
 
+/** "mon" plus the accented half, as every Mon project writes its name. */
 @Composable
-fun SectionHeader(text: String, modifier: Modifier = Modifier) {
+fun MonWordmark(modifier: Modifier = Modifier) {
     Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = modifier
-            .padding(start = 28.dp, end = 28.dp, top = 24.dp, bottom = 8.dp)
-            .semantics { heading() },
+        text = buildAnnotatedString {
+            withStyle(SpanStyle(color = MonColors.fg)) { append("mon") }
+            withStyle(SpanStyle(color = MonColors.link)) { append("sender") }
+        },
+        fontFamily = Wordmark,
+        fontSize = 22.sp,
+        modifier = modifier,
     )
 }
 
-/** Rounded group of related rows, separated by thin dividers. */
+@Composable
+fun SectionHeader(text: String, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp)
+            .semantics { heading() },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            Modifier
+                .size(8.dp)
+                .background(MonColors.accent),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = text.uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            color = MonColors.fgDim,
+        )
+    }
+}
+
+/** Bordered panel of related rows, separated by thin dividers. */
 @Composable
 fun SettingsGroup(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
+        color = MonColors.surface,
+        border = BorderStroke(1.dp, MonColors.border),
     ) {
         Column(content = content)
     }
@@ -63,10 +98,7 @@ fun SettingsGroup(modifier: Modifier = Modifier, content: @Composable ColumnScop
 
 @Composable
 fun GroupDivider() {
-    HorizontalDivider(
-        modifier = Modifier.padding(horizontal = 20.dp),
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-    )
+    HorizontalDivider(color = MonColors.border)
 }
 
 @Composable
@@ -81,22 +113,22 @@ fun SettingsRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 64.dp)
+            .heightIn(min = 56.dp)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(horizontal = 20.dp, vertical = 14.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (leading != null) {
             leading()
-            Spacer(Modifier.width(16.dp))
+            Spacer(Modifier.width(14.dp))
         }
         Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+            Text(title, style = MaterialTheme.typography.bodyLarge, color = MonColors.fg)
             if (subtitle != null) {
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MonColors.fgDim,
                 )
             }
         }
@@ -126,7 +158,21 @@ fun SwitchRow(
             role = Role.Switch,
             onValueChange = onCheckedChange,
         ),
-        trailing = { Switch(checked = checked, onCheckedChange = null, enabled = enabled) },
+        trailing = {
+            Switch(
+                checked = checked,
+                onCheckedChange = null,
+                enabled = enabled,
+                colors = SwitchDefaults.colors(
+                    checkedTrackColor = MonColors.accent,
+                    checkedThumbColor = Color.White,
+                    checkedBorderColor = MonColors.accent,
+                    uncheckedTrackColor = MonColors.input,
+                    uncheckedThumbColor = MonColors.fgDim,
+                    uncheckedBorderColor = MonColors.border,
+                ),
+            )
+        },
     )
 }
 
@@ -140,18 +186,79 @@ fun NavigationRow(title: String, subtitle: String?, onClick: () -> Unit) {
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = MonColors.fgDim,
             )
         },
     )
 }
 
+/** Small square status marker, like the category swatches in monbooru's sidebar. */
 @Composable
 fun StatusDot(color: Color, modifier: Modifier = Modifier) {
     Box(
         modifier
-            .size(10.dp)
-            .clip(CircleShape)
+            .size(8.dp)
             .background(color),
     )
+}
+
+/**
+ * Mon's flat button: a bordered surface block, or a solid accent block for the main action
+ * ([accent]) or a destructive one ([danger]).
+ */
+@Composable
+fun MonButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    accent: Boolean = false,
+    danger: Boolean = false,
+) {
+    val container = when {
+        danger -> MonColors.danger
+        accent -> MonColors.accent
+        else -> MonColors.surface
+    }
+    Button(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = 36.dp),
+        enabled = enabled,
+        shape = MaterialTheme.shapes.small,
+        border = if (accent || danger) null else BorderStroke(1.dp, MonColors.border),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = container,
+            contentColor = if (accent || danger) Color.White else MonColors.fg,
+            disabledContainerColor = MonColors.surface,
+            disabledContentColor = MonColors.fgDim.copy(alpha = 0.5f),
+        ),
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+    ) {
+        Text(text, style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+/** Mon's inline "[action]" link. */
+@Composable
+fun MonLink(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    color: Color = MonColors.link,
+    enabled: Boolean = true,
+) {
+    Text(
+        text = "[$text]",
+        style = MaterialTheme.typography.labelLarge,
+        color = if (enabled) color else MonColors.fgDim.copy(alpha = 0.5f),
+        modifier = modifier
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .padding(horizontal = 6.dp, vertical = 8.dp),
+    )
+}
+
+/** The thin rule Mon draws under its header and over its footer. */
+fun Modifier.rule(top: Boolean): Modifier = drawBehind {
+    val y = if (top) 0f else size.height - 1.dp.toPx()
+    drawRect(MonColors.border, topLeft = Offset(0f, y), size = Size(size.width, 1.dp.toPx()))
 }

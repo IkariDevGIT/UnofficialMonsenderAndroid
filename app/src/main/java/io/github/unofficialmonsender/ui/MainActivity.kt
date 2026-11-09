@@ -8,17 +8,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.List
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -30,6 +22,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import io.github.unofficialmonsender.R
+import io.github.unofficialmonsender.ui.components.MonTab
+import io.github.unofficialmonsender.ui.components.MonTabBar
 import io.github.unofficialmonsender.ui.detections.DetectionsScreen
 import io.github.unofficialmonsender.ui.filters.AppFilterScreen
 import io.github.unofficialmonsender.ui.filters.SiteRulesScreen
@@ -51,9 +45,9 @@ private data object AppsRoute
 @Serializable
 private data object SitesRoute
 
-private enum class Tab(val route: Any, val label: Int, val icon: ImageVector) {
-    DETECTIONS(DetectionsRoute, R.string.tab_detections, Icons.AutoMirrored.Rounded.List),
-    SETTINGS(SettingsRoute, R.string.tab_settings, Icons.Rounded.Settings),
+private enum class Tab(val route: Any, val label: Int) {
+    DETECTIONS(DetectionsRoute, R.string.tab_detections),
+    SETTINGS(SettingsRoute, R.string.tab_settings),
 }
 
 class MainActivity : ComponentActivity() {
@@ -82,9 +76,10 @@ class MainActivity : ComponentActivity() {
                     contentWindowInsets = WindowInsets(0),
                     bottomBar = {
                         if (currentTab != null) {
-                            NavigationBar {
-                                Tab.entries.forEach { tab ->
-                                    NavigationBarItem(
+                            MonTabBar(
+                                Tab.entries.map { tab ->
+                                    MonTab(
+                                        label = stringResource(tab.label),
                                         selected = tab == currentTab,
                                         onClick = {
                                             nav.navigate(tab.route) {
@@ -93,11 +88,9 @@ class MainActivity : ComponentActivity() {
                                                 restoreState = true
                                             }
                                         },
-                                        icon = { Icon(tab.icon, contentDescription = null) },
-                                        label = { Text(stringResource(tab.label)) },
                                     )
-                                }
-                            }
+                                },
+                            )
                         }
                     },
                 ) { padding ->

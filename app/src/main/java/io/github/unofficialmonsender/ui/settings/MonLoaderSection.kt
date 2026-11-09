@@ -1,6 +1,7 @@
 package io.github.unofficialmonsender.ui.settings
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -9,18 +10,13 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,9 +38,14 @@ import io.github.unofficialmonsender.data.monloader.PairingManager
 import io.github.unofficialmonsender.data.monloader.PairingState
 import io.github.unofficialmonsender.data.settings.AppSettings
 import io.github.unofficialmonsender.ui.components.GroupDivider
+import io.github.unofficialmonsender.ui.components.MonButton
+import io.github.unofficialmonsender.ui.components.MonLink
+import io.github.unofficialmonsender.ui.components.PromptPrefix
 import io.github.unofficialmonsender.ui.components.SettingsGroup
 import io.github.unofficialmonsender.ui.components.SettingsRow
 import io.github.unofficialmonsender.ui.components.StatusDot
+import io.github.unofficialmonsender.ui.components.monFieldColors
+import io.github.unofficialmonsender.ui.theme.MonColors
 import io.github.unofficialmonsender.ui.theme.StatusColors
 
 @Composable
@@ -88,9 +89,11 @@ private fun ServerAddressField(saved: String, onSave: (String) -> Boolean) {
         },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
         label = { Text(stringResource(R.string.server_address)) },
         placeholder = { Text(stringResource(R.string.server_address_hint)) },
+        prefix = { PromptPrefix() },
+        colors = monFieldColors(),
         singleLine = true,
         isError = invalid,
         supportingText = {
@@ -118,16 +121,14 @@ private fun ConnectionRow(state: ConnectionState, onRefresh: () -> Unit) {
         subtitle = subtitle,
         leading = {
             if (state == ConnectionState.Checking) {
-                CircularProgressIndicator(Modifier.size(10.dp), strokeWidth = 2.dp)
+                CircularProgressIndicator(Modifier.size(10.dp), strokeWidth = 2.dp, color = MonColors.link)
             } else {
                 StatusDot(color)
             }
         },
         trailing = {
             if (state != ConnectionState.NotConfigured) {
-                IconButton(onClick = onRefresh, enabled = state != ConnectionState.Checking) {
-                    Icon(Icons.Rounded.Refresh, contentDescription = stringResource(R.string.action_check_again))
-                }
+                MonLink(stringResource(R.string.action_refresh), onClick = onRefresh, enabled = state != ConnectionState.Checking)
             }
         },
     )
@@ -135,7 +136,7 @@ private fun ConnectionRow(state: ConnectionState, onRefresh: () -> Unit) {
 
 @Composable
 private fun describe(state: ConnectionState): Triple<String, String?, Color> {
-    val neutral = MaterialTheme.colorScheme.outline
+    val neutral = MaterialTheme.colorScheme.onSurfaceVariant
     val error = MaterialTheme.colorScheme.error
     return when (state) {
         ConnectionState.NotConfigured -> Triple(stringResource(R.string.connection_not_configured), stringResource(R.string.connection_not_configured_detail), neutral)
@@ -177,26 +178,29 @@ private fun PairingRow(
             isBusy -> SettingsRow(
                 title = stringResource(R.string.pairing_waiting),
                 subtitle = stringResource(R.string.pairing_waiting_detail, (pairing as? PairingState.WaitingForApproval)?.name ?: PairingManager.APP_NAME),
-                leading = { CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) },
-                trailing = { TextButton(onClick = onCancel) { Text(stringResource(R.string.action_cancel)) } },
+                leading = { CircularProgressIndicator(Modifier.size(10.dp), strokeWidth = 2.dp, color = MonColors.link) },
+                trailing = { MonLink(stringResource(R.string.action_cancel), onClick = onCancel) },
             )
 
             paired -> SettingsRow(
                 title = stringResource(R.string.pairing_paired),
                 subtitle = stringResource(R.string.pairing_paired_detail, settings.pairedName.ifEmpty { PairingManager.APP_NAME }),
-                trailing = { OutlinedButton(onClick = { confirmUnpair = true }) { Text(stringResource(R.string.action_unpair)) } },
+                leading = { StatusDot(StatusColors.success) },
+                trailing = { MonButton(stringResource(R.string.action_unpair), onClick = { confirmUnpair = true }) },
             )
 
             else -> Column {
                 SettingsRow(
                     title = stringResource(if (failure != null) R.string.pairing_failed else R.string.pairing_not_paired),
                     subtitle = if (failure != null) pairingFailureText(failure.reason) else stringResource(R.string.pairing_not_paired_detail),
+                    leading = { StatusDot(if (failure != null) MonColors.error else MonColors.fgDim) },
                     trailing = {
-                        if (failure != null) {
-                            FilledTonalButton(onClick = onPair, enabled = settings.isConfigured) { Text(stringResource(R.string.action_try_again)) }
-                        } else {
-                            Button(onClick = onPair, enabled = settings.isConfigured) { Text(stringResource(R.string.action_pair)) }
-                        }
+                        MonButton(
+                            text = stringResource(if (failure != null) R.string.action_try_again else R.string.action_pair),
+                            onClick = onPair,
+                            enabled = settings.isConfigured,
+                            accent = true,
+                        )
                     },
                 )
             }
@@ -209,14 +213,20 @@ private fun PairingRow(
             title = { Text(stringResource(R.string.unpair_title)) },
             text = { Text(stringResource(R.string.unpair_text)) },
             confirmButton = {
-                TextButton(onClick = {
-                    confirmUnpair = false
-                    onUnpair()
-                }) { Text(stringResource(R.string.action_unpair)) }
+                MonButton(
+                    text = stringResource(R.string.action_unpair),
+                    onClick = {
+                        confirmUnpair = false
+                        onUnpair()
+                    },
+                    danger = true,
+                )
             },
             dismissButton = {
-                TextButton(onClick = { confirmUnpair = false }) { Text(stringResource(R.string.action_cancel)) }
+                MonButton(stringResource(R.string.action_cancel), onClick = { confirmUnpair = false })
             },
+            containerColor = MonColors.surface,
+            modifier = Modifier.border(1.dp, MonColors.border),
         )
     }
 }

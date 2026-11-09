@@ -12,14 +12,13 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,6 +28,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -42,9 +42,12 @@ import io.github.unofficialmonsender.R
 import io.github.unofficialmonsender.data.settings.AppFilterMode
 import io.github.unofficialmonsender.data.settings.AppSettings
 import io.github.unofficialmonsender.ui.components.GroupDivider
+import io.github.unofficialmonsender.ui.components.PromptPrefix
 import io.github.unofficialmonsender.ui.components.SectionHeader
 import io.github.unofficialmonsender.ui.components.SettingsGroup
 import io.github.unofficialmonsender.ui.components.SettingsRow
+import io.github.unofficialmonsender.ui.components.monFieldColors
+import io.github.unofficialmonsender.ui.theme.MonColors
 import io.github.unofficialmonsender.util.InstalledApp
 import io.github.unofficialmonsender.util.launchableApps
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +73,7 @@ fun AppFilterScreen(
                     text = stringResource(R.string.apps_explanation),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 )
             }
             item {
@@ -85,7 +88,7 @@ fun AppFilterScreen(
                                 role = Role.RadioButton,
                                 onClick = { onUpdate { it.copy(appFilterMode = mode) } },
                             ),
-                            leading = { RadioButton(selected = selected, onClick = null) },
+                            leading = { RadioButton(selected = selected, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = MonColors.link, unselectedColor = MonColors.fgDim)) },
                         )
                     }
                 }
@@ -99,7 +102,8 @@ fun AppFilterScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 4.dp),
                     placeholder = { Text(stringResource(R.string.apps_search)) },
-                    leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+                    prefix = { PromptPrefix() },
+                    colors = monFieldColors(),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 )
@@ -108,7 +112,7 @@ fun AppFilterScreen(
             if (list == null) {
                 item {
                     Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(color = MonColors.link)
                     }
                 }
             } else {
@@ -131,7 +135,18 @@ fun AppFilterScreen(
                             },
                         ),
                         leading = { AppIcon(app.packageName) },
-                        trailing = { Checkbox(checked = checked, onCheckedChange = null, enabled = selectionEnabled) },
+                        trailing = {
+                            Checkbox(
+                                checked = checked,
+                                onCheckedChange = null,
+                                enabled = selectionEnabled,
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = MonColors.accent,
+                                    uncheckedColor = MonColors.fgDim,
+                                    checkmarkColor = Color.White,
+                                ),
+                            )
+                        },
                     )
                 }
             }
