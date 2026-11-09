@@ -71,6 +71,10 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
+    fun resend(entry: DetectionEntry) = container.linkSender.resend(entry)
+
+    fun copiedByApp(text: String) = container.linkSender.copiedByApp(text)
+
     fun update(transform: (AppSettings) -> AppSettings) {
         viewModelScope.launch { container.settings.update(transform) }
     }

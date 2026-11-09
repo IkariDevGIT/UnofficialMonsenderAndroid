@@ -1,6 +1,20 @@
 package io.github.ikaridevgit.unofficialmonsender.ui.detections
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.text.format.DateFormat
+import android.text.format.DateUtils
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.DpOffset
+import androidx.core.net.toUri
+import io.github.ikaridevgit.unofficialmonsender.ui.theme.MonColors
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -92,7 +106,7 @@ fun DetectionsScreen(viewModel: SettingsViewModel) {
                         }
                         entries.forEachIndexed { index, entry ->
                             if (index > 0) GroupDivider()
-                            key(entry.id) { EntryRow(entry) }
+                            key(entry.id) { EntryRow(entry, onResend = viewModel::resend, onCopy = viewModel::copiedByApp) }
                         }
                     }
                 }
@@ -117,15 +131,20 @@ private fun DetectionOffCard() {
     }
 }
 
-/** One line of the log, laid out like a row of monloader's queue. */
+/** One line of the log, laid out like a row of monloader's queue. Tap it for send again, copy and open. */
 @Composable
-private fun EntryRow(entry: DetectionEntry) {
+private fun EntryRow(entry: DetectionEntry, onResend: (DetectionEntry) -> Unit, onCopy: (String) -> Unit) {
     val context = LocalContext.current
-    val timeFormat = remember(context) { DateFormat.getTimeFormat(context) }
     val app = remember(entry.sourcePackage) { entry.sourcePackage?.let { context.appLabel(it) ?: it } }
     val delivery = entry.delivery
     val color = statusColor(entry)
-    Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+    var menu by remember { mutableStateOf(false) }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clickable(enabled = entry.url != null) { menu = true }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             StatusDot(color)
             Text(
@@ -137,7 +156,7 @@ private fun EntryRow(entry: DetectionEntry) {
                     .weight(1f),
             )
             Text(
-                text = timeFormat.format(entry.timeMillis),
+                text = remember(entry.timeMillis) { timestamp(context, entry.timeMillis) },
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -185,7 +204,62 @@ private fun EntryRow(entry: DetectionEntry) {
                 )
             }
         }
+        val url = entry.url
+        if (url != null) {
+            EntryMenu(
+                expanded = menu,
+                canResend = delivery != Delivery.Sending,
+                onDismiss = { menu = false },
+                onResend = { onResend(entry) },
+                onCopy = {
+                    onCopy(url)
+                    val clipboard = context.getSystemService(ClipboardManager::class.java)
+                    clipboard?.setPrimaryClip(ClipData.newPlainText(url, url))
+                },
+                onOpen = {
+                    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
+                },
+            )
+        }
     }
+}
+
+@Composable
+private fun EntryMenu(
+    expanded: Boolean,
+    canResend: Boolean,
+    onDismiss: () -> Unit,
+    onResend: () -> Unit,
+    onCopy: () -> Unit,
+    onOpen: () -> Unit,
+) {
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismiss,
+        offset = DpOffset(16.dp, 0.dp),
+        shape = MaterialTheme.shapes.small,
+        containerColor = MonColors.surface,
+        border = BorderStroke(1.dp, MonColors.border),
+    ) {
+        @Composable
+        fun item(label: Int, enabled: Boolean = true, action: () -> Unit) = DropdownMenuItem(
+            text = { Text(stringResource(label), style = MaterialTheme.typography.bodyMedium) },
+            enabled = enabled,
+            onClick = {
+                onDismiss()
+                action()
+            },
+        )
+        item(R.string.action_send_again, enabled = canResend, action = onResend)
+        item(R.string.action_copy_link, action = onCopy)
+        item(R.string.action_open_link, action = onOpen)
+    }
+}
+
+/** Time for today's entries, date and time for older ones now that the log survives restarts. */
+private fun timestamp(context: Context, millis: Long): String {
+    val time = DateFormat.getTimeFormat(context).format(millis)
+    return if (DateUtils.isToday(millis)) time else DateFormat.getDateFormat(context).format(millis) + " " + time
 }
 
 @Composable

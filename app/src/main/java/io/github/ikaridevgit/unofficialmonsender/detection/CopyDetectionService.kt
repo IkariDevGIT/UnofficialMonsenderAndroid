@@ -78,6 +78,7 @@ class CopyDetectionService : AccessibilityService() {
         if (clip == null || clip == lastClip) return
         lastClip = clip
 
+        if (container.linkSender.isOwnCopy(clip.text)) return
         val url = Links.firstLink(clip.text) ?: return
         val check = container.linkInspector.inspect(url, source, explicit = false)
         val skip = check.skipReason
@@ -89,10 +90,7 @@ class CopyDetectionService : AccessibilityService() {
         overlay.show(
             request = OverlayRequest.from(check, sourceLabel = source?.let { appLabel(it) }),
             options = OverlayOptions.from(settings),
-            onDelivery = { delivery ->
-                log.setDelivery(id, delivery)
-                if (delivery is Delivery.Queued && delivery.jobId != null) container.jobTracker.track(id, delivery.jobId)
-            },
+            onDelivery = { delivery -> container.linkSender.report(id, delivery) },
             onClosed = { log.promptClosed(id) },
         )
     }

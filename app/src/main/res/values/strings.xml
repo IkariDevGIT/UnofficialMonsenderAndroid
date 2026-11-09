@@ -32,6 +32,9 @@
     <string name="action_turn_on">Turn on</string>
     <string name="action_app_info">App info</string>
     <string name="action_got_it">Got it</string>
+    <string name="action_send_again">Send again</string>
+    <string name="action_copy_link">Copy link</string>
+    <string name="action_open_link">Open link</string>
 
     <string name="welcome_title">Hi there ( ˶ˆᗜˆ˵ )</string>
     <string name="welcome_accessibility">To notice when you copy a link, this app needs its accessibility service. Turn it on under Link detection with the \"Turn on\" button, which takes you to the right setting.</string>
