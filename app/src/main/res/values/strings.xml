@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Unofficial MonSender</string>
+    <string name="share_label">Send to MonLoader</string>
+    <string name="tile_label">Send copied link</string>
+
+    <string name="detection_service_summary">Shows a send prompt when you copy a link</string>
+    <string name="detection_service_description">Unofficial MonSender watches for copy actions, such as tapping \"Copy link\" or a \"Copied\" message, then briefly reads the clipboard to check for a link. It doesn\'t read screen content, and links are only sent to your MonLoader server when you swipe them up. Android shows a short notice each time the clipboard is read.</string>
+
+    <string name="section_monloader">MonLoader</string>
+    <string name="section_detection">Link detection</string>
+    <string name="section_overlay">Overlay</string>
+    <string name="section_try">Try it</string>
+    <string name="section_recent">Recent detections</string>
+    <string name="footer">Unofficial companion app for MonLoader. Not affiliated with the monbooru project.</string>
+
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_close">Close</string>
+    <string name="action_back">Back</string>
+    <string name="action_add">Add</string>
+    <string name="action_pair">Pair</string>
+    <string name="action_unpair">Unpair</string>
+    <string name="action_try_again">Try again</string>
+    <string name="action_check_again">Check again</string>
+    <string name="action_turn_on">Turn on</string>
+    <string name="action_app_info">App info</string>
+    <string name="action_show_overlay">Show overlay</string>
+    <string name="action_remove_host">Remove %1$s</string>
+
+    <string name="server_address">Server address</string>
+    <string name="server_address_hint">http://192.168.1.20:8456</string>
+    <string name="server_address_help">MonLoader listens on port 8456 by default</string>
+    <string name="server_address_invalid">Enter a valid address</string>
+
+    <string name="connection_not_configured">Not set up</string>
+    <string name="connection_not_configured_detail">Enter your MonLoader address to get started</string>
+    <string name="connection_checking">Checking connection…</string>
+    <string name="connection_online">Connected</string>
+    <string name="connection_version">MonLoader %1$s</string>
+    <string name="connection_gallerydl">gallery-dl %1$s</string>
+    <string name="connection_unreachable">Can\'t reach MonLoader</string>
+    <string name="connection_unreachable_detail">Check the address and that this device is on the same network</string>
+    <string name="connection_not_monloader">Not a MonLoader server</string>
+    <string name="connection_not_monloader_detail">Something answered, but it isn\'t MonLoader</string>
+    <string name="connection_reachable">MonLoader found</string>
+    <string name="connection_not_paired_detail">Pair this app to send links</string>
+    <string name="connection_token_rejected">Pairing no longer valid</string>
+    <string name="connection_token_rejected_detail">MonLoader rejected this app\'s token. Unpair and pair again.</string>
+    <string name="connection_setup">Setup not finished</string>
+    <string name="connection_setup_detail">Finish MonLoader\'s first-run setup, then check again</string>
+
+    <string name="pairing_not_paired">Not paired</string>
+    <string name="pairing_not_paired_detail">Pairing gives this app its own token for MonLoader</string>
+    <string name="pairing_waiting">Waiting for approval</string>
+    <string name="pairing_waiting_detail">In MonLoader, open Settings → Pairing and approve %1$s</string>
+    <string name="pairing_paired">Paired</string>
+    <string name="pairing_paired_detail">Shown in MonLoader as %1$s</string>
+    <string name="pairing_failed">Pairing didn\'t finish</string>
+    <string name="pairing_failure_not_configured">Save a server address first</string>
+    <string name="pairing_failure_unreachable">Couldn\'t reach MonLoader</string>
+    <string name="pairing_failure_already_paired">MonLoader already has a pairing for %1$s. Remove it in MonLoader under Settings → Authentication, then try again.</string>
+    <string name="pairing_failure_denied">The request was denied in MonLoader</string>
+    <string name="pairing_failure_expired">The request expired before it was approved</string>
+    <string name="pairing_failure_too_many">MonLoader has too many pending requests. Try again in a few minutes.</string>
+    <string name="pairing_failure_refused">MonLoader refused the request</string>
+    <string name="unpair_title">Unpair from MonLoader?</string>
+    <string name="unpair_text">This app\'s token is removed on both sides. You can pair again at any time.</string>
+    <string name="message_unpaired">Unpaired</string>
+    <string name="message_unpaired_offline">Unpaired here. MonLoader couldn\'t be reached, so remove the token there too.</string>
+
+    <string name="detection_on">Copy detection is on</string>
+    <string name="detection_on_detail">Copy a link in any app to get the send prompt</string>
+    <string name="detection_off">Copy detection is off</string>
+    <string name="detection_off_detail">Android only lets apps read the clipboard while in use. Turning on the accessibility service lets this app notice when you copy a link.</string>
+    <string name="detection_restricted_hint">If Android says the setting is restricted, open App info, tap ⋮ and choose \"Allow restricted settings\", then try again.</string>
+    <string name="setting_show_overlay">Prompt for copied links</string>
+    <string name="setting_show_overlay_detail">Show the send overlay when you copy a link</string>
+    <string name="setting_supported_only">Supported sites only</string>
+    <string name="setting_supported_only_detail">Skip links that MonLoader can\'t download</string>
+    <string name="tile_title">Quick settings tile</string>
+    <string name="tile_detail">Send the link on your clipboard from quick settings. Works without copy detection.</string>
+    <string name="message_tile_added">Tile added to quick settings</string>
+
+    <string name="apps_title">Apps</string>
+    <string name="apps_explanation">Choose which apps can trigger the prompt when you copy a link.</string>
+    <string name="apps_mode_any">All apps</string>
+    <string name="apps_mode_only">Only selected apps</string>
+    <string name="apps_mode_except">All apps except selected</string>
+    <string name="apps_list_header">Selected apps</string>
+    <string name="apps_search">Search apps</string>
+    <string name="apps_summary_any">All apps</string>
+    <plurals name="apps_summary_only">
+        <item quantity="one">Only %d app</item>
+        <item quantity="other">Only %d apps</item>
+    </plurals>
+    <plurals name="apps_summary_except">
+        <item quantity="one">All except %d app</item>
+        <item quantity="other">All except %d apps</item>
+    </plurals>
+
+    <string name="sites_title">Websites</string>
+    <string name="sites_explanation">Rules match a domain and all its subdomains. \"Always prompt\" also covers sites missing from MonLoader\'s list.</string>
+    <string name="sites_always">Always prompt</string>
+    <string name="sites_always_empty">No sites added</string>
+    <string name="sites_never">Never prompt</string>
+    <string name="sites_never_empty">No sites added</string>
+    <string name="sites_input_hint">example.com</string>
+    <string name="sites_input_invalid">Enter a domain such as example.com</string>
+    <string name="sites_summary_none">No rules</string>
+    <string name="sites_summary">%1$d always · %2$d never</string>
+
+    <string name="setting_auto_dismiss">Close automatically</string>
+    <string name="setting_auto_dismiss_detail">Hide the overlay if you don\'t interact with it</string>
+    <string name="auto_dismiss_off">Off</string>
+    <string name="auto_dismiss_seconds">%1$d s</string>
+    <string name="setting_haptics">Haptic feedback</string>
+
+    <string name="try_link">Link</string>
+    <string name="try_send_for_real">Send for real</string>
+    <string name="try_send_for_real_off">Off: the overlay works normally but nothing is sent</string>
+    <string name="try_send_for_real_on">Swiping up adds the link to MonLoader\'s queue</string>
+
+    <string name="recent_empty">Nothing detected yet</string>
+    <string name="recent_empty_detail">Copied links and why they did or didn\'t get a prompt show up here</string>
+    <string name="outcome_shown">Prompt shown</string>
+    <string name="outcome_no_link">Copied text had no link</string>
+    <string name="outcome_unreadable">Couldn\'t read the clipboard</string>
+    <string name="outcome_repeated">Same clip as before</string>
+    <string name="outcome_not_configured">MonLoader isn\'t set up</string>
+    <string name="outcome_app_filtered">App is filtered out</string>
+    <string name="outcome_site_blocked">Site is set to never prompt</string>
+    <string name="outcome_unsupported">Site isn\'t supported</string>
+
+    <string name="overlay_pane_title">Send link to MonLoader</string>
+    <string name="overlay_action_send">Send</string>
+    <string name="overlay_action_dismiss">Dismiss</string>
+    <string name="overlay_swipe_to_send">Swipe up to send</string>
+    <string name="overlay_release_to_send">Release to send</string>
+    <string name="overlay_tap_to_dismiss">Tap here to dismiss</string>
+    <string name="overlay_sending">Sending…</string>
+    <string name="overlay_sent">Added to MonLoader\'s queue</string>
+    <string name="overlay_sent_test">Test complete, nothing was sent</string>
+    <string name="overlay_copied_from">Copied from %1$s</string>
+    <string name="overlay_test_caption">Test, nothing will be sent</string>
+    <string name="overlay_support_supported">Supported by MonLoader</string>
+    <string name="overlay_support_image">Direct image</string>
+    <string name="overlay_support_unknown">Not in MonLoader\'s site list</string>
+    <string name="overlay_support_unchecked">Couldn\'t check site support</string>
+    <string name="overlay_failed_title">Couldn\'t send</string>
+    <string name="overlay_no_link">No link on the clipboard</string>
+
+    <string name="send_failure_not_configured">Set up MonLoader in the app first.</string>
+    <string name="send_failure_unreachable">MonLoader can\'t be reached. Check that it\'s running and on the same network.</string>
+    <string name="send_failure_not_paired">This app isn\'t paired with MonLoader yet.</string>
+    <string name="send_failure_token_rejected">MonLoader rejected this app\'s token. Pair again in the app.</string>
+    <string name="send_failure_monbooru_unconfigured">MonLoader has no monbooru connected.</string>
+    <string name="send_failure_monbooru_paused">MonLoader\'s link to monbooru is paused.</string>
+    <string name="send_failure_setup_required">MonLoader\'s first-run setup isn\'t finished.</string>
+    <string name="send_failure_invalid_url">MonLoader didn\'t accept this link.</string>
+    <string name="send_failure_refused">MonLoader refused the link (%1$s).</string>
+</resources>
