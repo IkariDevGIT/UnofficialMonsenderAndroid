@@ -25,7 +25,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import io.github.ikaridevgit.unofficialmonsender.BuildConfig
 import io.github.ikaridevgit.unofficialmonsender.R
+import io.github.ikaridevgit.unofficialmonsender.ui.components.NavigationRow
+import io.github.ikaridevgit.unofficialmonsender.ui.components.SettingsGroup
 import io.github.ikaridevgit.unofficialmonsender.ui.components.MonBrandTitle
 import io.github.ikaridevgit.unofficialmonsender.ui.components.MonTopBar
 import io.github.ikaridevgit.unofficialmonsender.ui.components.SectionHeader
@@ -43,6 +49,8 @@ fun SettingsScreen(
     val pairing by viewModel.pairing.collectAsStateWithLifecycle()
     val serviceRunning by viewModel.detectionRunning.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
+    var showBuildInfo by rememberSaveable { mutableStateOf(false) }
+    if (showBuildInfo) BuildInfoDialog(onDismiss = { showBuildInfo = false })
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     LaunchedEffect(Unit) {
@@ -99,6 +107,16 @@ fun SettingsScreen(
             item { OverlaySection(current, viewModel::update) }
             item { SectionHeader(stringResource(R.string.section_privacy)) }
             item { PrivacySection(current, viewModel::update) }
+            item { SectionHeader(stringResource(R.string.section_about)) }
+            item {
+                SettingsGroup {
+                    NavigationRow(
+                        title = stringResource(R.string.build_info),
+                        subtitle = stringResource(R.string.build_info_detail, BuildConfig.VERSION_NAME, BuildConfig.GIT_COMMIT),
+                        onClick = { showBuildInfo = true },
+                    )
+                }
+            }
             item {
                 Text(
                     text = stringResource(R.string.footer),

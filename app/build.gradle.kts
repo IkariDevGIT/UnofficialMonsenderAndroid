@@ -4,6 +4,15 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+fun git(vararg args: String): String = providers.exec {
+    commandLine("git", *args)
+    isIgnoreExitValue = true
+}.standardOutput.asText.get().trim()
+
+val gitCommit = git("rev-parse", "--short=10", "HEAD").ifEmpty { "unknown" }
+val gitCommitDate = git("log", "-1", "--format=%cI").ifEmpty { "unknown" }
+val gitDirty = git("status", "--porcelain").isNotEmpty()
+
 android {
     namespace = "io.github.ikaridevgit.unofficialmonsender"
     compileSdk = 37
@@ -14,6 +23,9 @@ android {
         targetSdk = 37
         versionCode = providers.environmentVariable("VERSION_CODE").orNull?.toInt() ?: 1
         versionName = providers.environmentVariable("VERSION_NAME").orNull ?: "0.1.0"
+        buildConfigField("String", "GIT_COMMIT", "\"$gitCommit\"")
+        buildConfigField("String", "GIT_COMMIT_DATE", "\"$gitCommitDate\"")
+        buildConfigField("boolean", "GIT_DIRTY", "$gitDirty")
     }
 
     val releaseKeystore = providers.environmentVariable("RELEASE_KEYSTORE").orNull
@@ -44,6 +56,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
