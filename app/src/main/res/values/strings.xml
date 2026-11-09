@@ -11,6 +11,9 @@
     <string name="section_detection">Link detection</string>
     <string name="section_overlay">Overlay</string>
     <string name="brand_unofficial">unofficial</string>
+    <string name="kaomoji_happy" translatable="false">⸜(｡˃ ᵕ ˂ )⸝</string>
+    <string name="kaomoji_busy" translatable="false">ꉂ(˵˃ ᗜ ˂˵)</string>
+    <string name="kaomoji_sad" translatable="false">(≖_≖ )</string>
     <string name="tab_detections">Detections</string>
     <string name="tab_settings">Settings</string>
     <string name="section_latest">Latest copies</string>
@@ -29,7 +32,7 @@
     <string name="action_app_info">App info</string>
     <string name="action_got_it">Got it</string>
 
-    <string name="welcome_title">Before you start</string>
+    <string name="welcome_title">Hi there ( ˶ˆᗜˆ˵ )</string>
     <string name="welcome_accessibility">To notice when you copy a link, this app needs its accessibility service. Turn it on under Link detection with the \"Turn on\" button, which takes you to the right setting.</string>
     <string name="welcome_restricted">Android may say the setting is restricted because the app wasn\'t installed from a store. If so, tap \"App info\" under Link detection, tap ⋮ in the top corner, choose \"Allow restricted settings\", then turn the service on again.</string>
     <string name="action_remove_host">Remove %1$s</string>
@@ -124,7 +127,7 @@
     <string name="auto_dismiss_seconds">%1$d s</string>
     <string name="setting_haptics">Haptic feedback</string>
 
-    <string name="recent_empty">Nothing detected yet</string>
+    <string name="recent_empty">Nothing copied yet. (－ω－) zzZ</string>
     <string name="recent_empty_detail">Your last 20 copied links show up here, along with whether they were sent</string>
     <string name="status_waiting">Waiting for swipe</string>
     <string name="status_sending">Sending…</string>

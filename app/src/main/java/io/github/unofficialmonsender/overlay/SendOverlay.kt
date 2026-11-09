@@ -344,7 +344,7 @@ fun SendOverlay(
                             },
                         )
                         OverlayPhase.Sent -> StatusPill(
-                            text = stringResource(R.string.overlay_sent),
+                            text = stringResource(R.string.overlay_sent) + "  " + stringResource(R.string.kaomoji_happy),
                             leading = {
                                 Icon(Icons.Rounded.Check, contentDescription = null, tint = StatusColors.success)
                             },
@@ -562,7 +562,10 @@ private fun FailureCard(message: String, onRetry: () -> Unit, onClose: () -> Uni
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                 Spacer(Modifier.width(12.dp))
-                Text(stringResource(R.string.overlay_failed_title), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = stringResource(R.string.overlay_failed_title) + "  " + stringResource(R.string.kaomoji_sad),
+                    style = MaterialTheme.typography.titleMedium,
+                )
             }
             Spacer(Modifier.height(8.dp))
             Text(

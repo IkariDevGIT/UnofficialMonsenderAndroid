@@ -5,15 +5,45 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:pathData="M54,34 L70,50 M54,34 L38,50 M54,34 L54,72"
-        android:strokeWidth="6"
-        android:strokeColor="@color/launcher_foreground"
+        android:pathData="M46,28 L54,20 L62,28"
+        android:strokeColor="@color/launcher_spark"
+        android:strokeAlpha="0.45"
+        android:strokeWidth="4"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M40,78 L68,78"
-        android:strokeWidth="6"
-        android:strokeAlpha="0.55"
-        android:strokeColor="@color/launcher_foreground"
+        android:pathData="M46,40 L54,32 L62,40"
+        android:strokeColor="@color/launcher_spark"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:fillColor="@color/launcher_foreground"
+        android:pathData="M31.95,75.7 L36.15,53.65 L51.9,67.3 Z M56.1,67.3 L71.85,53.65 L76.05,75.7 Z" />
+    <path
+        android:fillColor="@color/launcher_foreground"
+        android:pathData="M46.65,61 L61.35,61 A15.75,15.75 0 0 1 77.1,76.75 L77.1,87.25 A15.75,15.75 0 0 1 61.35,103 L46.65,103 A15.75,15.75 0 0 1 30.9,87.25 L30.9,76.75 A15.75,15.75 0 0 1 46.65,61 Z" />
+    <path
+        android:fillColor="@color/launcher_ink"
+        android:pathData="M40.35,80.95 a3.15,3.78 0 1 0 6.3,0 a3.15,3.78 0 1 0 -6.3,0 Z M61.35,80.95 a3.15,3.78 0 1 0 6.3,0 a3.15,3.78 0 1 0 -6.3,0 Z" />
+    <path
+        android:fillColor="@color/launcher_shine"
+        android:pathData="M42.66,79.27 a1.05,1.05 0 1 0 2.1,0 a1.05,1.05 0 1 0 -2.1,0 Z M63.66,79.27 a1.05,1.05 0 1 0 2.1,0 a1.05,1.05 0 1 0 -2.1,0 Z" />
+    <path
+        android:fillColor="@color/launcher_blush"
+        android:pathData="M34.68,91.45 a3.57,2.1 0 1 0 7.14,0 a3.57,2.1 0 1 0 -7.14,0 Z M66.18,91.45 a3.57,2.1 0 1 0 7.14,0 a3.57,2.1 0 1 0 -7.14,0 Z" />
+    <path
+        android:fillColor="@color/launcher_ledge"
+        android:pathData="M0,88 L108,88 L108,108 L0,108 Z" />
+    <path
+        android:fillColor="@color/launcher_ledge_top"
+        android:pathData="M0,88 L108,88 L108,91 L0,91 Z" />
+    <path
+        android:fillColor="@color/launcher_foreground"
+        android:pathData="M33.5,83 L38.5,83 A4.5,4.5 0 0 1 43,87.5 L43,87.5 A4.5,4.5 0 0 1 38.5,92 L33.5,92 A4.5,4.5 0 0 1 29,87.5 L29,87.5 A4.5,4.5 0 0 1 33.5,83 Z M69.5,83 L74.5,83 A4.5,4.5 0 0 1 79,87.5 L79,87.5 A4.5,4.5 0 0 1 74.5,92 L69.5,92 A4.5,4.5 0 0 1 65,87.5 L65,87.5 A4.5,4.5 0 0 1 69.5,83 Z" />
+    <path
+        android:pathData="M33,89 L33,91 M36,89 L36,91 M39,89 L39,91 M69,89 L69,91 M72,89 L72,91 M75,89 L75,91"
+        android:strokeColor="@color/launcher_ledge_top"
+        android:strokeWidth="1"
         android:strokeLineCap="round" />
 </vector>

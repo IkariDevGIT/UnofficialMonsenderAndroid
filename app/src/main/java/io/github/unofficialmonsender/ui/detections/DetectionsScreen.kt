@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,10 +21,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,6 +43,7 @@ import io.github.unofficialmonsender.ui.components.GroupDivider
 import io.github.unofficialmonsender.ui.components.MonBrandTitle
 import io.github.unofficialmonsender.ui.components.MonButton
 import io.github.unofficialmonsender.ui.components.MonTopBar
+import io.github.unofficialmonsender.ui.components.PeekingMascot
 import io.github.unofficialmonsender.ui.components.SectionHeader
 import io.github.unofficialmonsender.ui.components.SettingsGroup
 import io.github.unofficialmonsender.ui.components.SettingsRow
@@ -67,18 +72,28 @@ fun DetectionsScreen(viewModel: SettingsViewModel) {
                 item { Spacer(Modifier.height(16.dp)) }
                 item { DetectionOffCard() }
             }
-            item { SectionHeader(stringResource(R.string.section_latest)) }
             item {
-                SettingsGroup {
-                    if (entries.isEmpty()) {
-                        SettingsRow(
-                            title = stringResource(R.string.recent_empty),
-                            subtitle = stringResource(R.string.recent_empty_detail),
-                        )
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .zIndex(1f),
+                        verticalAlignment = Alignment.Bottom,
+                    ) {
+                        SectionHeader(stringResource(R.string.section_latest), Modifier.weight(1f))
+                        PeekingMascot(Modifier.padding(end = 28.dp))
                     }
-                    entries.forEachIndexed { index, entry ->
-                        if (index > 0) GroupDivider()
-                        key(entry.id) { EntryRow(entry) }
+                    SettingsGroup {
+                        if (entries.isEmpty()) {
+                            SettingsRow(
+                                title = stringResource(R.string.recent_empty),
+                                subtitle = stringResource(R.string.recent_empty_detail),
+                            )
+                        }
+                        entries.forEachIndexed { index, entry ->
+                            if (index > 0) GroupDivider()
+                            key(entry.id) { EntryRow(entry) }
+                        }
                     }
                 }
             }
@@ -128,6 +143,15 @@ private fun EntryRow(entry: DetectionEntry) {
             )
         }
         Column(Modifier.padding(start = 18.dp)) {
+            kaomoji(entry)?.let {
+                Text(
+                    text = stringResource(it),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = color,
+                    maxLines = 1,
+                    modifier = Modifier.semantics { hideFromAccessibility() },
+                )
+            }
             if (entry.url != null) {
                 Text(
                     text = entry.url,
@@ -224,4 +248,17 @@ private fun statusText(entry: DetectionEntry): String = stringResource(
     },
 )
 
-private val JOB_ERRORS = setOf(JobStatus.FAILED, JobStatus.INTERRUPTED, JobStatus.PARTIAL)
+/** monloader's queue faces: one for done, one for busy, one for broken. */
+private fun kaomoji(entry: DetectionEntry): Int? = when (val delivery = entry.delivery) {
+    Delivery.Sending -> R.string.kaomoji_busy
+    is Delivery.Failed -> R.string.kaomoji_sad
+    is Delivery.Queued -> when (delivery.job?.status) {
+        JobStatus.RUNNING -> R.string.kaomoji_busy
+        JobStatus.SUCCEEDED -> R.string.kaomoji_happy
+        JobStatus.FAILED, JobStatus.INTERRUPTED -> R.string.kaomoji_sad
+        else -> null
+    }
+    else -> null
+}
+
+private val JOB_ERRORS =setOf(JobStatus.FAILED, JobStatus.INTERRUPTED, JobStatus.PARTIAL)

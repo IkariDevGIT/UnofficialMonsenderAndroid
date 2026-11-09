@@ -3,4 +3,10 @@
     <color name="background">#FF0E0D10</color>
     <color name="launcher_background">#FF18161C</color>
     <color name="launcher_foreground">#FFB39DDB</color>
+    <color name="launcher_ink">#FF241D2E</color>
+    <color name="launcher_shine">#FFF3EEFA</color>
+    <color name="launcher_blush">#FFEF8F99</color>
+    <color name="launcher_spark">#FFE8C06A</color>
+    <color name="launcher_ledge">#FF7E57C2</color>
+    <color name="launcher_ledge_top">#FF9575CD</color>
 </resources>
