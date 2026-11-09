@@ -1,5 +1,7 @@
 package io.github.ikaridevgit.unofficialmonsender.data.monloader
 
+import kotlinx.serialization.Serializable
+
 sealed interface ConnectionState {
     data object NotConfigured : ConnectionState
     data object Checking : ConnectionState
@@ -48,6 +50,7 @@ enum class JobStatus {
 }
 
 /** A job's state as MonLoader's queue reports it. */
+@Serializable
 data class JobSnapshot(
     val status: JobStatus,
     val created: Int = 0,

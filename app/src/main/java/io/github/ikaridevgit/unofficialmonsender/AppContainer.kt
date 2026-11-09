@@ -12,6 +12,7 @@ import io.github.ikaridevgit.unofficialmonsender.link.LinkInspector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import java.io.File
 
 class AppContainer(context: Context) {
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -23,6 +24,10 @@ class AppContainer(context: Context) {
     val monLoader = MonLoaderRepository(settings, api, siteCatalog, appScope)
     val pairing = PairingManager(settings, api, appScope)
     val linkInspector = LinkInspector(settings, monLoader)
-    val detectionLog = DetectionLog()
+    val detectionLog = DetectionLog(File(context.filesDir, "detections.json"), appScope)
     val jobTracker = JobTracker(detectionLog, monLoader, appScope)
+
+    init {
+        detectionLog.unfinishedJobs().forEach { (entry, job) -> jobTracker.track(entry, job) }
+    }
 }
