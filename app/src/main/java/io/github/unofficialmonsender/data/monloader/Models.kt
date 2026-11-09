@@ -59,3 +59,19 @@ data class JobAccepted(@SerialName("job_id") val jobId: Long = 0)
 
 @Serializable
 data class JobRef(val id: Long = 0)
+
+@Serializable
+data class JobSummary(
+    val created: Int = 0,
+    val duplicate: Int = 0,
+    val skipped: Int = 0,
+    val failed: Int = 0,
+)
+
+@Serializable
+data class Job(
+    val id: Long = 0,
+    val status: String = "",
+    val summary: JobSummary? = null,
+    val error: String? = null,
+)

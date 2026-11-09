@@ -30,7 +30,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.pluralStringResource
 import io.github.unofficialmonsender.R
+import io.github.unofficialmonsender.data.monloader.JobSnapshot
+import io.github.unofficialmonsender.data.monloader.JobStatus
 import io.github.unofficialmonsender.detection.Delivery
 import io.github.unofficialmonsender.detection.DetectionEntry
 import io.github.unofficialmonsender.detection.DetectionOutcome
@@ -143,11 +146,16 @@ private fun EntryCard(entry: DetectionEntry) {
                     modifier = Modifier.padding(start = 22.dp, top = 2.dp),
                 )
             }
-            if (delivery is Delivery.Failed) {
+            val detail = when (delivery) {
+                is Delivery.Failed -> sendFailureMessage(delivery.reason, delivery.detail) to true
+                is Delivery.Queued -> delivery.job?.let { job -> jobDetail(job)?.let { it to (job.status in JOB_ERRORS) } }
+                else -> null
+            }
+            if (detail != null) {
                 Text(
-                    text = sendFailureMessage(delivery.reason, delivery.detail),
+                    text = detail.first,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
+                    color = if (detail.second) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 22.dp, top = 6.dp),
                 )
             }
@@ -156,19 +164,50 @@ private fun EntryCard(entry: DetectionEntry) {
 }
 
 @Composable
-private fun statusColor(entry: DetectionEntry): Color = when (entry.delivery) {
-    Delivery.Sent -> StatusColors.success
-    is Delivery.Failed -> MaterialTheme.colorScheme.error
-    Delivery.Waiting, Delivery.Sending -> MaterialTheme.colorScheme.primary
-    Delivery.Dismissed, null -> MaterialTheme.colorScheme.outline
+private fun jobDetail(job: JobSnapshot): String? {
+    if (job.status in JOB_ERRORS && job.error != null) return job.error
+    if (!job.status.isFinished || job.status == JobStatus.REMOVED) return null
+    val parts = listOfNotNull(
+        job.created.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.job_created, it, it) },
+        job.duplicate.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.job_duplicate, it, it) },
+        job.skipped.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.job_skipped, it, it) },
+        job.failed.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.job_failed, it, it) },
+    )
+    return parts.joinToString(" · ").ifEmpty { null }
+}
+
+@Composable
+private fun statusColor(entry: DetectionEntry): Color {
+    val colors = MaterialTheme.colorScheme
+    return when (val delivery = entry.delivery) {
+        is Delivery.Queued -> when (delivery.job?.status) {
+            null, JobStatus.QUEUED, JobStatus.RUNNING -> colors.primary
+            JobStatus.SUCCEEDED -> StatusColors.success
+            JobStatus.PARTIAL -> StatusColors.warning
+            JobStatus.FAILED, JobStatus.INTERRUPTED -> colors.error
+            JobStatus.CANCELED, JobStatus.REMOVED -> colors.outline
+        }
+        is Delivery.Failed -> colors.error
+        Delivery.Waiting, Delivery.Sending -> colors.primary
+        Delivery.Dismissed, null -> colors.outline
+    }
 }
 
 @Composable
 private fun statusText(entry: DetectionEntry): String = stringResource(
-    when (entry.delivery) {
+    when (val delivery = entry.delivery) {
         Delivery.Waiting -> R.string.status_waiting
         Delivery.Sending -> R.string.status_sending
-        Delivery.Sent -> R.string.status_sent
+        is Delivery.Queued -> when (delivery.job?.status) {
+            null, JobStatus.QUEUED -> R.string.status_queued
+            JobStatus.RUNNING -> R.string.status_running
+            JobStatus.SUCCEEDED -> R.string.status_succeeded
+            JobStatus.PARTIAL -> R.string.status_partial
+            JobStatus.FAILED -> R.string.status_job_failed
+            JobStatus.CANCELED -> R.string.status_canceled
+            JobStatus.INTERRUPTED -> R.string.status_interrupted
+            JobStatus.REMOVED -> R.string.status_removed
+        }
         is Delivery.Failed -> R.string.status_failed
         Delivery.Dismissed -> R.string.status_dismissed
         null -> when (entry.outcome) {
@@ -183,3 +222,5 @@ private fun statusText(entry: DetectionEntry): String = stringResource(
         }
     },
 )
+
+private val JOB_ERRORS = setOf(JobStatus.FAILED, JobStatus.INTERRUPTED, JobStatus.PARTIAL)

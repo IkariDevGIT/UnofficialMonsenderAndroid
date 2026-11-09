@@ -127,9 +127,32 @@
     <string name="recent_empty_detail">Your last 20 copied links show up here, along with whether they were sent</string>
     <string name="status_waiting">Waiting for swipe</string>
     <string name="status_sending">Sending…</string>
-    <string name="status_sent">Sent to MonLoader</string>
     <string name="status_failed">Couldn\'t send</string>
     <string name="status_dismissed">Dismissed</string>
+    <string name="status_queued">Queued in MonLoader</string>
+    <string name="status_running">Downloading</string>
+    <string name="status_succeeded">Done</string>
+    <string name="status_partial">Partly done</string>
+    <string name="status_job_failed">Download failed</string>
+    <string name="status_canceled">Canceled in MonLoader</string>
+    <string name="status_interrupted">Interrupted</string>
+    <string name="status_removed">Removed from MonLoader</string>
+    <plurals name="job_created">
+        <item quantity="one">%d new</item>
+        <item quantity="other">%d new</item>
+    </plurals>
+    <plurals name="job_duplicate">
+        <item quantity="one">%d already in monbooru</item>
+        <item quantity="other">%d already in monbooru</item>
+    </plurals>
+    <plurals name="job_skipped">
+        <item quantity="one">%d skipped</item>
+        <item quantity="other">%d skipped</item>
+    </plurals>
+    <plurals name="job_failed">
+        <item quantity="one">%d failed</item>
+        <item quantity="other">%d failed</item>
+    </plurals>
     <string name="outcome_shown">Prompt shown</string>
     <string name="outcome_no_link">Copied text had no link</string>
     <string name="outcome_unreadable">Couldn\'t read the clipboard</string>

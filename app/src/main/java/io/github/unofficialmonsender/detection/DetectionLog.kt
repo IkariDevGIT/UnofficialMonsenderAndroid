@@ -1,5 +1,6 @@
 package io.github.unofficialmonsender.detection
 
+import io.github.unofficialmonsender.data.monloader.JobSnapshot
 import io.github.unofficialmonsender.data.monloader.SendFailure
 import io.github.unofficialmonsender.data.monloader.SendResult
 import io.github.unofficialmonsender.link.SkipReason
@@ -34,13 +35,15 @@ enum class DetectionOutcome {
 sealed interface Delivery {
     data object Waiting : Delivery
     data object Sending : Delivery
-    data object Sent : Delivery
     data class Failed(val reason: SendFailure, val detail: String?) : Delivery
     data object Dismissed : Delivery
 
+    /** Accepted by MonLoader; [job] follows the job through its queue once it has been checked. */
+    data class Queued(val jobId: Long?, val job: JobSnapshot? = null) : Delivery
+
     companion object {
         fun of(result: SendResult): Delivery = when (result) {
-            is SendResult.Queued -> Sent
+            is SendResult.Queued -> Queued(result.jobId?.takeIf { it > 0 })
             is SendResult.Failed -> Failed(result.reason, result.detail)
         }
     }
@@ -69,6 +72,11 @@ class DetectionLog {
     }
 
     fun setDelivery(id: Long, delivery: Delivery) = edit(id) { it.copy(delivery = delivery) }
+
+    fun setJob(id: Long, job: JobSnapshot) = edit(id) {
+        val queued = it.delivery as? Delivery.Queued ?: return@edit it
+        it.copy(delivery = queued.copy(job = job))
+    }
 
     /** Closing a prompt that was never sent, or whose send was cut off, counts as dismissed. */
     fun promptClosed(id: Long) = edit(id) {

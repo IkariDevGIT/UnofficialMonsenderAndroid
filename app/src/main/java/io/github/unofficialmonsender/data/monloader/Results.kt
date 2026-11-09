@@ -28,6 +28,35 @@ sealed interface SendResult {
     data class Failed(val reason: SendFailure, val detail: String? = null) : SendResult
 }
 
+enum class JobStatus {
+    QUEUED, RUNNING, SUCCEEDED, PARTIAL, FAILED, CANCELED, INTERRUPTED, REMOVED;
+
+    val isFinished: Boolean get() = this != QUEUED && this != RUNNING
+
+    companion object {
+        fun of(raw: String): JobStatus? = when (raw) {
+            "queued" -> QUEUED
+            "running" -> RUNNING
+            "succeeded" -> SUCCEEDED
+            "partial" -> PARTIAL
+            "failed" -> FAILED
+            "canceled" -> CANCELED
+            "interrupted" -> INTERRUPTED
+            else -> null
+        }
+    }
+}
+
+/** A job's state as MonLoader's queue reports it. */
+data class JobSnapshot(
+    val status: JobStatus,
+    val created: Int = 0,
+    val duplicate: Int = 0,
+    val skipped: Int = 0,
+    val failed: Int = 0,
+    val error: String? = null,
+)
+
 internal object Outcomes {
     /** Same classification MonSender's `connState` applies to /health plus one authed call. */
     fun connection(health: ApiResponse, authed: ApiResponse?, tokenHeld: Boolean): ConnectionState {

@@ -97,7 +97,10 @@ class CopyDetectionService : AccessibilityService() {
         overlay.show(
             request = OverlayRequest.from(check, sourceLabel = source?.let { appLabel(it) }),
             options = OverlayOptions.from(settings),
-            onDelivery = { log.setDelivery(id, it) },
+            onDelivery = { delivery ->
+                log.setDelivery(id, delivery)
+                if (delivery is Delivery.Queued && delivery.jobId != null) container.jobTracker.track(id, delivery.jobId)
+            },
             onClosed = { log.promptClosed(id) },
         )
     }

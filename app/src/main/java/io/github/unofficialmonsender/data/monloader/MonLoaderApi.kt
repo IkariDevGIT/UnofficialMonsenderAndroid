@@ -41,6 +41,8 @@ class MonLoaderApi(
     suspend fun listQueue(base: String, token: String, limit: Int = 1) =
         get(base, "/api/v1/queue?limit=$limit", token)
 
+    suspend fun getJob(base: String, token: String, id: Long) = get(base, "/api/v1/queue/$id", token)
+
     suspend fun listSites(base: String, token: String) = get(base, "/api/v1/sites", token)
 
     suspend fun enqueue(base: String, token: String, url: String) =

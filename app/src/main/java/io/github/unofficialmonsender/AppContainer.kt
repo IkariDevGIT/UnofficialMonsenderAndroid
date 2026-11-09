@@ -7,6 +7,7 @@ import io.github.unofficialmonsender.data.monloader.PairingManager
 import io.github.unofficialmonsender.data.monloader.SiteCatalog
 import io.github.unofficialmonsender.data.settings.SettingsRepository
 import io.github.unofficialmonsender.detection.DetectionLog
+import io.github.unofficialmonsender.detection.JobTracker
 import io.github.unofficialmonsender.link.LinkInspector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,4 +24,5 @@ class AppContainer(context: Context) {
     val pairing = PairingManager(settings, api, appScope)
     val linkInspector = LinkInspector(settings, monLoader)
     val detectionLog = DetectionLog()
+    val jobTracker = JobTracker(detectionLog, monLoader, appScope)
 }

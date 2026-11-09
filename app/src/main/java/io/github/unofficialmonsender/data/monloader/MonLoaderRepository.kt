@@ -27,6 +27,26 @@ class MonLoaderRepository(
         return Outcomes.send(api.enqueue(s.serverUrl, s.token, url), tokenHeld = true)
     }
 
+    /** Null when MonLoader can't be asked right now, so the caller should try again later. */
+    suspend fun job(id: Long): JobSnapshot? {
+        val s = settings.current()
+        if (!s.isPaired) return null
+        val response = api.getJob(s.serverUrl, s.token, id)
+        if (response.status == 404) return JobSnapshot(JobStatus.REMOVED)
+        if (!response.isSuccessful) return null
+        val job = response.decode(Job.serializer()) ?: return null
+        val status = JobStatus.of(job.status) ?: return null
+        val summary = job.summary ?: JobSummary()
+        return JobSnapshot(
+            status = status,
+            created = summary.created,
+            duplicate = summary.duplicate,
+            skipped = summary.skipped,
+            failed = summary.failed,
+            error = job.error?.takeIf { it.isNotBlank() },
+        )
+    }
+
     suspend fun siteFor(url: String): SiteMatch {
         val s = settings.current()
         return catalog.match(s.serverUrl, s.token, url)
