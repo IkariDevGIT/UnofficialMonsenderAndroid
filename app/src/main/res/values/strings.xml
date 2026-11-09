@@ -5,7 +5,7 @@
     <string name="tile_label">Send copied link</string>
 
     <string name="detection_service_summary">Shows a send prompt when you copy a link</string>
-    <string name="detection_service_description">Unofficial MonSender watches for copy actions, such as tapping \"Copy link\" or a \"Copied\" message, then briefly reads the clipboard to check for a link. It doesn\'t read screen content, and links are only sent to your MonLoader server when you swipe them up. Android shows a short notice each time the clipboard is read.</string>
+    <string name="detection_service_description">Android doesn\'t tell apps when something is copied. Unofficial MonSender watches for the signs of a copy, such as a menu closing after a tap, a confirmation message, or the system clipboard preview, then briefly reads the clipboard to check for a link. It doesn\'t store or send screen content, and links only go to your MonLoader server when you swipe them up. Android may show a short notice when the clipboard is read.</string>
 
     <string name="section_monloader">MonLoader</string>
     <string name="section_detection">Link detection</string>

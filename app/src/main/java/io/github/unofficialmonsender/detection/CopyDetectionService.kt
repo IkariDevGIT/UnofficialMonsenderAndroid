@@ -2,7 +2,9 @@ package io.github.unofficialmonsender.detection
 
 import android.accessibilityservice.AccessibilityService
 import android.os.SystemClock
+import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import android.view.inputmethod.InputMethodManager
 import io.github.unofficialmonsender.appContainer
 import io.github.unofficialmonsender.link.Links
 import io.github.unofficialmonsender.overlay.OverlayOptions
@@ -28,8 +30,11 @@ class CopyDetectionService : AccessibilityService() {
     private var foregroundPackage: String? = null
     private var lastClip: ClipSnapshot? = null
     private var lastProbeAt = 0L
+    private var keyboards: Set<String> = emptySet()
 
     override fun onServiceConnected() {
+        keyboards = getSystemService(InputMethodManager::class.java)
+            ?.enabledInputMethodList?.map { it.packageName }?.toSet().orEmpty()
         signals = CopySignalDetector(this)
         probe = ClipboardProbe(this)
         overlay = OverlayWindow(this)
@@ -39,11 +44,16 @@ class CopyDetectionService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         if (!_running.value) return
         val pkg = event.packageName?.toString()
-        if (pkg == packageName) return
+        if (pkg == packageName || (pkg != null && pkg in keyboards)) return
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && pkg != null && pkg !in SYSTEM_PACKAGES) {
             foregroundPackage = pkg
         }
-        if (overlay.isShowing || inCooldown() || !signals.isCopySignal(event)) return
+        if (overlay.isShowing || inCooldown()) return
+        val signal = signals.isCopySignal(event)
+        if (Log.isLoggable(TAG, Log.DEBUG)) {
+            Log.d(TAG, "${AccessibilityEvent.eventTypeToString(event.eventType)} signal=$signal pkg=$pkg window=${event.windowId} text=${event.text} desc=${event.contentDescription}")
+        }
+        if (!signal) return
 
         val source = if (pkg == null || pkg in SYSTEM_PACKAGES) foregroundPackage else pkg
         pending?.cancel()
@@ -61,6 +71,7 @@ class CopyDetectionService : AccessibilityService() {
         val log = container.detectionLog
         val clip = probe.read()
         lastProbeAt = SystemClock.elapsedRealtime()
+        if (Log.isLoggable(TAG, Log.DEBUG)) Log.d(TAG, "probe source=$source read=${clip != null}")
         if (clip == null) {
             log.add(source, null, DetectionOutcome.UNREADABLE)
             return
@@ -109,5 +120,6 @@ class CopyDetectionService : AccessibilityService() {
         private val SYSTEM_PACKAGES = setOf(CopySignalDetector.SYSTEM_UI, "android")
         private const val SETTLE_DELAY_MS = 300L
         private const val PROBE_COOLDOWN_MS = 2500L
+        private const val TAG = "CopyDetection"
     }
 }
