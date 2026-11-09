@@ -14,6 +14,8 @@ data class LinkCheck(
     val host: String,
     val site: SiteMatch,
     val skipReason: SkipReason?,
+    /** Whether the link may be written to the log: logging is on and both its app and its site are allowed. */
+    val loggable: Boolean,
 ) {
     val shouldShow: Boolean get() = skipReason == null
 }
@@ -31,18 +33,22 @@ class LinkInspector(
         val host = Links.hostOf(url).orEmpty()
         val site = monLoader.siteFor(url)
         val reason = if (explicit) null else skipReason(s, host, site, sourcePackage)
-        return LinkCheck(url, host, site, reason)
+        val allowed = (sourcePackage == null || appAllowed(s, sourcePackage)) && !siteBlocked(s, host)
+        return LinkCheck(url, host, site, reason, loggable = s.keepLog && allowed)
     }
 
+    /** App and site rules come first, so nothing from a filtered app or blocked site is ever logged. */
     private fun skipReason(s: AppSettings, host: String, site: SiteMatch, sourcePackage: String?): SkipReason? {
         if (!s.detectionEnabled) return SkipReason.DETECTION_OFF
-        if (!s.isConfigured) return SkipReason.NOT_CONFIGURED
         if (sourcePackage != null && !appAllowed(s, sourcePackage)) return SkipReason.APP_FILTERED
-        if (s.blockedHosts.any { Links.matchesHostRule(host, it) }) return SkipReason.SITE_BLOCKED
+        if (siteBlocked(s, host)) return SkipReason.SITE_BLOCKED
+        if (!s.isConfigured) return SkipReason.NOT_CONFIGURED
         if (s.allowedHosts.any { Links.matchesHostRule(host, it) }) return null
         if (s.supportedSitesOnly && site.support == SiteSupport.UNKNOWN) return SkipReason.UNSUPPORTED
         return null
     }
+
+    private fun siteBlocked(s: AppSettings, host: String): Boolean = s.blockedHosts.any { Links.matchesHostRule(host, it) }
 
     private fun appAllowed(s: AppSettings, pkg: String): Boolean = when (s.appFilterMode) {
         AppFilterMode.ANY -> true

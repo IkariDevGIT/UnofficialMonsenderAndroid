@@ -13,6 +13,9 @@ import io.github.ikaridevgit.unofficialmonsender.link.LinkInspector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import java.io.File
 
 class AppContainer(context: Context) {
@@ -31,5 +34,8 @@ class AppContainer(context: Context) {
 
     init {
         detectionLog.unfinishedJobs().forEach { (entry, job) -> jobTracker.track(entry, job) }
+        appScope.launch {
+            settings.settings.map { it.keepLog }.distinctUntilChanged().collect(detectionLog::setEnabled)
+        }
     }
 }

@@ -15,6 +15,8 @@ data class AppSettings(
     val autoDismissSeconds: Int = 10,
     val haptics: Boolean = true,
     val welcomeSeen: Boolean = false,
+    /** Off is the "Don't log, just send" mode: links are sent but never kept. */
+    val keepLog: Boolean = true,
 ) {
     val isConfigured: Boolean get() = serverUrl.isNotEmpty()
     val isPaired: Boolean get() = token.isNotEmpty()

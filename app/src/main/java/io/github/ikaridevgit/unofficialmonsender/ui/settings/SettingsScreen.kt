@@ -97,6 +97,8 @@ fun SettingsScreen(
             }
             item { SectionHeader(stringResource(R.string.section_overlay)) }
             item { OverlaySection(current, viewModel::update) }
+            item { SectionHeader(stringResource(R.string.section_privacy)) }
+            item { PrivacySection(current, viewModel::update) }
             item {
                 Text(
                     text = stringResource(R.string.footer),

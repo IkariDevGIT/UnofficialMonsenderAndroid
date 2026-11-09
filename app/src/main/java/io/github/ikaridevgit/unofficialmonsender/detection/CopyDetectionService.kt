@@ -2,7 +2,6 @@ package io.github.ikaridevgit.unofficialmonsender.detection
 
 import android.accessibilityservice.AccessibilityService
 import android.os.SystemClock
-import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityWindowInfo
 import android.view.inputmethod.InputMethodManager
@@ -52,11 +51,7 @@ class CopyDetectionService : AccessibilityService() {
             foregroundPackage = pkg
         }
         if (overlay.isShowing || inCooldown()) return
-        val signal = signals.isCopySignal(event)
-        if (Log.isLoggable(TAG, Log.DEBUG)) {
-            Log.d(TAG, "${AccessibilityEvent.eventTypeToString(event.eventType)} signal=$signal pkg=$pkg window=${event.windowId} text=${event.text} desc=${event.contentDescription}")
-        }
-        if (!signal) return
+        if (!signals.isCopySignal(event)) return
 
         val source = sourceApp(pkg)
         pending?.cancel()
@@ -74,7 +69,6 @@ class CopyDetectionService : AccessibilityService() {
         val log = container.detectionLog
         val clip = probe.read()
         lastProbeAt = SystemClock.elapsedRealtime()
-        if (Log.isLoggable(TAG, Log.DEBUG)) Log.d(TAG, "probe source=$source read=${clip != null}")
         if (clip == null || clip == lastClip) return
         lastClip = clip
 
@@ -83,15 +77,15 @@ class CopyDetectionService : AccessibilityService() {
         val check = container.linkInspector.inspect(url, source, explicit = false)
         val skip = check.skipReason
         if (skip != null) {
-            if (skip == SkipReason.NOT_CONFIGURED) log.add(source, url, DetectionOutcome.NOT_CONFIGURED)
+            if (skip == SkipReason.NOT_CONFIGURED && check.loggable) log.add(source, url, DetectionOutcome.NOT_CONFIGURED)
             return
         }
-        val id = log.add(source, url, DetectionOutcome.SHOWN)
+        val id = if (check.loggable) log.add(source, url, DetectionOutcome.SHOWN) else null
         overlay.show(
             request = OverlayRequest.from(check, sourceLabel = source?.let { appLabel(it) }),
             options = OverlayOptions.from(settings),
             onDelivery = { delivery -> container.linkSender.report(id, delivery) },
-            onClosed = { log.promptClosed(id) },
+            onClosed = { id?.let(log::promptClosed) },
         )
     }
 
@@ -129,6 +123,5 @@ class CopyDetectionService : AccessibilityService() {
 
         private const val SETTLE_DELAY_MS = 300L
         private const val PROBE_COOLDOWN_MS = 2500L
-        private const val TAG = "CopyDetection"
     }
 }

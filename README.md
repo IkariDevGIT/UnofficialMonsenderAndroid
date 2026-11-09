@@ -45,6 +45,16 @@ The quick settings tile and the share menu work without copy detection.
 
 **Just looking around?** Enter `test` as the server address. The app then talks to a built-in pretend MonLoader, so you can pair, send and watch jobs finish without a server.
 
+## Privacy
+
+**No data collection, fully offline.** There are no analytics, no tracking, no crash reporting and no accounts. The app never contacts anything except the MonLoader server you enter yourself, and it only does that to send the links you choose to send.
+
+**What "log" means here.** The *log* is the list on the Detections tab: the last 20 links you sent, with whether they arrived. It's a convenience for you, stored only on your phone, and never uploaded or shared with anyone. Nothing is written to Android's system log either.
+
+- **Only links, ever.** The app reads the clipboard only right after a copy, and only to look for a link. Anything that isn't a link is ignored on the spot and never stored anywhere. Clips marked as sensitive (passwords, one-time codes) aren't read at all.
+- **Your filters decide what's logged.** Links from apps you've filtered out, or from sites you've set to never prompt, are never logged. By default every app and site is allowed.
+- **Don't log, just send.** Turn this on under Settings → Privacy and the app keeps no history at all: links are sent and forgotten, the Detections tab stays empty, and the existing log is deleted. Only your settings are kept.
+
 ## Troubleshooting
 
 **Copy detection keeps turning itself off.** Some phones (Samsung, Xiaomi, Huawei, Oppo and others) stop background apps to save battery, which also switches off their accessibility service. Set the app's battery usage to Unrestricted in App info, and on Samsung add it to Never sleeping apps. See [dontkillmyapp.com](https://dontkillmyapp.com) for your phone.

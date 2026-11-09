@@ -68,9 +68,12 @@ data class DetectionEntry(
 
 /**
  * The latest links and, for prompted ones, whether they were sent. Kept in [file] so the list
- * survives restarts; a prompt still open when the app stopped counts as dismissed.
+ * survives restarts; a prompt still open when the app stopped counts as dismissed. Only links
+ * are ever stored, and only ones the caller has cleared for logging.
  */
 class DetectionLog(private val file: File, scope: CoroutineScope) {
+    @Volatile private var enabled = true
+
     private val _entries = MutableStateFlow(load())
     val entries: StateFlow<List<DetectionEntry>> = _entries.asStateFlow()
     private val ids = AtomicLong(_entries.value.maxOfOrNull { it.id } ?: 0L)
@@ -84,11 +87,22 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
         }
     }
 
-    fun add(sourcePackage: String?, url: String?, outcome: DetectionOutcome, origin: LinkOrigin = LinkOrigin.COPY): Long {
+    /** Null when logging is off; the link is then sent without leaving a trace. */
+    fun add(sourcePackage: String?, url: String, outcome: DetectionOutcome, origin: LinkOrigin = LinkOrigin.COPY): Long? {
+        if (!enabled) return null
         val delivery = if (outcome == DetectionOutcome.SHOWN) Delivery.Waiting else null
         val entry = DetectionEntry(ids.incrementAndGet(), System.currentTimeMillis(), sourcePackage, url, outcome, delivery, origin)
         _entries.update { (listOf(entry) + it).take(MAX_ENTRIES) }
         return entry.id
+    }
+
+    /** Turning logging off forgets everything at once, file included. */
+    fun setEnabled(on: Boolean) {
+        enabled = on
+        if (!on) {
+            _entries.value = emptyList()
+            file.delete()
+        }
     }
 
     fun setDelivery(id: Long, delivery: Delivery) = edit(id) { it.copy(delivery = delivery) }
@@ -122,6 +136,7 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
     }.getOrDefault(emptyList())
 
     private fun save(list: List<DetectionEntry>) {
+        if (!enabled) return
         runCatching {
             val temp = File(file.parentFile, file.name + ".tmp")
             temp.writeText(json.encodeToString(serializer, list))

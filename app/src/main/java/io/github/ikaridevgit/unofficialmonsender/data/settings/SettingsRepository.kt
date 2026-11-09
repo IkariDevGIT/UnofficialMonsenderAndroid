@@ -54,6 +54,7 @@ class SettingsRepository(context: Context) {
         autoDismissSeconds = this[Keys.autoDismiss] ?: 10,
         haptics = this[Keys.haptics] ?: true,
         welcomeSeen = this[Keys.welcomeSeen] ?: false,
+        keepLog = this[Keys.keepLog] ?: true,
     )
 
     private fun MutablePreferences.write(s: AppSettings) {
@@ -69,6 +70,7 @@ class SettingsRepository(context: Context) {
         this[Keys.autoDismiss] = s.autoDismissSeconds
         this[Keys.haptics] = s.haptics
         this[Keys.welcomeSeen] = s.welcomeSeen
+        this[Keys.keepLog] = s.keepLog
     }
 
     private object Keys {
@@ -84,5 +86,6 @@ class SettingsRepository(context: Context) {
         val autoDismiss = intPreferencesKey("auto_dismiss_seconds")
         val haptics = booleanPreferencesKey("haptics")
         val welcomeSeen = booleanPreferencesKey("welcome_seen")
+        val keepLog = booleanPreferencesKey("keep_log")
     }
 }

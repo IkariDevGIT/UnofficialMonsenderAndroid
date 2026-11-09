@@ -73,6 +73,7 @@ import io.github.ikaridevgit.unofficialmonsender.util.appLabel
 fun DetectionsScreen(viewModel: SettingsViewModel) {
     val entries by viewModel.detectionLog.collectAsStateWithLifecycle()
     val serviceRunning by viewModel.detectionRunning.collectAsStateWithLifecycle()
+    val settings by viewModel.settings.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
@@ -99,7 +100,12 @@ fun DetectionsScreen(viewModel: SettingsViewModel) {
                         PeekingMascot(Modifier.padding(end = 28.dp))
                     }
                     SettingsGroup {
-                        if (entries.isEmpty()) {
+                        if (settings?.keepLog == false) {
+                            SettingsRow(
+                                title = stringResource(R.string.log_off),
+                                subtitle = stringResource(R.string.log_off_detail),
+                            )
+                        } else if (entries.isEmpty()) {
                             SettingsRow(
                                 title = stringResource(R.string.recent_empty),
                                 subtitle = stringResource(R.string.recent_empty_detail),

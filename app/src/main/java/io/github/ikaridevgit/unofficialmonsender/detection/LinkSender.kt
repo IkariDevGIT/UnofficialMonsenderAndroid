@@ -15,12 +15,14 @@ class LinkSender(
 ) {
     @Volatile private var ownCopy: Pair<String, Long>? = null
 
-    suspend fun send(entryId: Long, url: String): SendResult {
+    /** Sends [url]; with no [entryId] (logging off or not allowed) nothing is recorded. */
+    suspend fun send(entryId: Long?, url: String): SendResult {
         report(entryId, Delivery.Sending)
         return monLoader.send(url).also { report(entryId, Delivery.of(it)) }
     }
 
-    fun report(entryId: Long, delivery: Delivery) {
+    fun report(entryId: Long?, delivery: Delivery) {
+        if (entryId == null) return
         log.setDelivery(entryId, delivery)
         if (delivery is Delivery.Queued && delivery.jobId != null) tracker.track(entryId, delivery.jobId)
     }

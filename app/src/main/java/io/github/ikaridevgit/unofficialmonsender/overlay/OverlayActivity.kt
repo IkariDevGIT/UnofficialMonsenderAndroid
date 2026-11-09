@@ -46,9 +46,7 @@ class OverlayActivity : ComponentActivity() {
                         SendOverlay(
                             request = current,
                             options = options,
-                            send = {
-                                if (id != null) appContainer.linkSender.send(id, current.url) else appContainer.monLoader.send(current.url)
-                            },
+                            send = { appContainer.linkSender.send(id, current.url) },
                             onClosed = {
                                 closeEntry()
                                 finish()
@@ -111,7 +109,7 @@ class OverlayActivity : ComponentActivity() {
             val container = appContainer
             options = OverlayOptions.from(container.settings.current())
             val check = container.linkInspector.inspect(url, sourcePackage, explicit = true)
-            entryId = container.detectionLog.add(sourcePackage, url, DetectionOutcome.SHOWN, origin)
+            entryId = if (check.loggable) container.detectionLog.add(sourcePackage, url, DetectionOutcome.SHOWN, origin) else null
             request = OverlayRequest.from(check, sourceLabel = sourcePackage?.let { appLabel(it) }, origin = origin)
         }
     }

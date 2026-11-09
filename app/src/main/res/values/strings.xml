@@ -10,6 +10,11 @@
     <string name="section_monloader">MonLoader</string>
     <string name="section_detection">Link detection</string>
     <string name="section_overlay">Overlay</string>
+    <string name="section_privacy">Privacy</string>
+    <string name="setting_no_log">Don\'t log, just send</string>
+    <string name="setting_no_log_detail">Keeps no history at all. Links are sent but never written down, and turning this on deletes the existing log.</string>
+    <string name="log_off">Not logging</string>
+    <string name="log_off_detail">\"Don\'t log, just send\" is on, so nothing is kept here (－ω－)</string>
     <string name="brand_unofficial">unofficial</string>
     <string name="mascot_label">Kitty, tap to pet her</string>
     <string name="kaomoji_happy" translatable="false">⸜(｡˃ ᵕ ˂ )⸝</string>

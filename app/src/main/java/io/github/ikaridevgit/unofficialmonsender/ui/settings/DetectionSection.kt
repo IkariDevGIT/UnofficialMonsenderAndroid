@@ -184,4 +184,16 @@ fun OverlaySection(settings: AppSettings, onUpdate: ((AppSettings) -> AppSetting
     }
 }
 
+@Composable
+fun PrivacySection(settings: AppSettings, onUpdate: ((AppSettings) -> AppSettings) -> Unit) {
+    SettingsGroup {
+        SwitchRow(
+            title = stringResource(R.string.setting_no_log),
+            subtitle = stringResource(R.string.setting_no_log_detail),
+            checked = !settings.keepLog,
+            onCheckedChange = { off -> onUpdate { it.copy(keepLog = !off) } },
+        )
+    }
+}
+
 private const val TROUBLESHOOTING_URL = "https://github.com/IkariDevGIT/UnofficialMonsenderAndroid#troubleshooting"
