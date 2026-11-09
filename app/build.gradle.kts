@@ -12,14 +12,27 @@ android {
         applicationId = "io.github.unofficialmonsender"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = providers.environmentVariable("VERSION_CODE").orNull?.toInt() ?: 1
+        versionName = providers.environmentVariable("VERSION_NAME").orNull ?: "0.1.0"
+    }
+
+    val releaseKeystore = providers.environmentVariable("RELEASE_KEYSTORE").orNull
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = providers.environmentVariable("RELEASE_KEYSTORE_PASSWORD").get()
+                keyAlias = providers.environmentVariable("RELEASE_KEY_ALIAS").get()
+                keyPassword = providers.environmentVariable("RELEASE_KEY_PASSWORD").get()
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.findByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
         }
     }
