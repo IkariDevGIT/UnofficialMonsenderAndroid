@@ -7,5 +7,5 @@
     android:description="@string/detection_service_description"
     android:isAccessibilityTool="false"
     android:notificationTimeout="100"
-    android:settingsActivity="io.github.unofficialmonsender.ui.MainActivity"
+    android:settingsActivity="io.github.ikaridevgit.unofficialmonsender.ui.MainActivity"
     android:summary="@string/detection_service_summary" />

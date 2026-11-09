@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "io.github.unofficialmonsender"
+    namespace = "io.github.ikaridevgit.unofficialmonsender"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "io.github.unofficialmonsender"
+        applicationId = "io.github.ikaridevgit.unofficialmonsender"
         minSdk = 26
         targetSdk = 37
         versionCode = providers.environmentVariable("VERSION_CODE").orNull?.toInt() ?: 1
