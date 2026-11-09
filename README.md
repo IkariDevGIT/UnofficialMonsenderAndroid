@@ -2,6 +2,15 @@
   <img src=".github/assets/banner.png" alt="Unofficial MonSender, with Kitty peeking over the edge">
 </p>
 
+<br>
+
+> [!WARNING]
+> This is a prototype. It was vibecoded and **has not been code reviewed**, so neither users nor developers reusing the code should expect a flawless app. **It mainly exists to demonstrate my idea for making downloading to monbooru easier on Android**.
+>
+> Support is minimal and best effort only.
+
+<br><br><br>
+
 An unofficial Android companion for [MonLoader](https://github.com/monbooru/monloader), inspired by [MonSender](https://github.com/monbooru/monsender). Copy a link in any app, swipe up on the prompt, and it lands in MonLoader's download queue, ready for [monbooru](https://github.com/monbooru/monbooru).
 
 This project is not affiliated with monbooru and is not made or maintained by the monbooru maintainers.
@@ -16,11 +25,6 @@ This project is not affiliated with monbooru and is not made or maintained by th
 </table>
 
 Meet **Kitty**, who keeps you company while you collect. She blinks, scratches, licks her paws and meows when you pet her. Pet her a lot and she might come a little closer (=^･ω･^=)
-
-> [!WARNING]
-> This is a prototype. It was vibecoded and has not been code reviewed, so neither users nor developers reusing the code should expect a flawless app. It mainly exists to demonstrate my idea for making downloading to monbooru easier on Android.
->
-> Support is minimal and best effort only.
 
 ## Install
 
