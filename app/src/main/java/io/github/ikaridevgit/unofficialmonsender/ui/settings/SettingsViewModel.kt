@@ -77,6 +77,13 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
     fun clearLog() = container.detectionLog.clear()
 
+    private val _supportedDomains = MutableStateFlow<List<String>>(emptyList())
+    val supportedDomains: StateFlow<List<String>> = _supportedDomains.asStateFlow()
+
+    fun loadSupportedDomains() {
+        viewModelScope.launch { _supportedDomains.value = container.monLoader.supportedDomains() }
+    }
+
     fun update(transform: (AppSettings) -> AppSettings) {
         viewModelScope.launch { container.settings.update(transform) }
     }

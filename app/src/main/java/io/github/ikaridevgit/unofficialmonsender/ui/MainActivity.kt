@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -141,7 +142,9 @@ private fun AppScaffold(
                 settings?.let { AppFilterScreen(it, viewModel::update, onBack = nav::navigateUp) }
             }
             composable<SitesRoute> {
-                settings?.let { SiteRulesScreen(it, viewModel::update, onBack = nav::navigateUp) }
+                val suggestions by viewModel.supportedDomains.collectAsStateWithLifecycle()
+                LaunchedEffect(Unit) { viewModel.loadSupportedDomains() }
+                settings?.let { SiteRulesScreen(it, suggestions, viewModel::update, onBack = nav::navigateUp) }
             }
         }
     }

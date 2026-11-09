@@ -47,6 +47,11 @@ class MonLoaderRepository(
         )
     }
 
+    suspend fun supportedDomains(): List<String> {
+        val s = settings.current()
+        return catalog.domains(s.serverUrl, s.token)
+    }
+
     suspend fun siteFor(url: String): SiteMatch {
         val s = settings.current()
         return catalog.match(s.serverUrl, s.token, url)

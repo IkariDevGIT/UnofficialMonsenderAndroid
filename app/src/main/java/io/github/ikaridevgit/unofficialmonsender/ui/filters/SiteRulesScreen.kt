@@ -1,6 +1,13 @@
 package io.github.ikaridevgit.unofficialmonsender.ui.filters
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -40,6 +48,7 @@ import io.github.ikaridevgit.unofficialmonsender.ui.theme.MonColors
 @Composable
 fun SiteRulesScreen(
     settings: AppSettings,
+    suggestions: List<String>,
     onUpdate: ((AppSettings) -> AppSettings) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -57,6 +66,7 @@ fun SiteRulesScreen(
             item {
                 HostList(
                     hosts = settings.allowedHosts,
+                    suggestions = suggestions,
                     emptyText = stringResource(R.string.sites_always_empty),
                     onAdd = { host -> onUpdate { it.copy(allowedHosts = it.allowedHosts + host, blockedHosts = it.blockedHosts - host) } },
                     onRemove = { host -> onUpdate { it.copy(allowedHosts = it.allowedHosts - host) } },
@@ -66,6 +76,7 @@ fun SiteRulesScreen(
             item {
                 HostList(
                     hosts = settings.blockedHosts,
+                    suggestions = suggestions,
                     emptyText = stringResource(R.string.sites_never_empty),
                     onAdd = { host -> onUpdate { it.copy(blockedHosts = it.blockedHosts + host, allowedHosts = it.allowedHosts - host) } },
                     onRemove = { host -> onUpdate { it.copy(blockedHosts = it.blockedHosts - host) } },
@@ -78,6 +89,7 @@ fun SiteRulesScreen(
 @Composable
 private fun HostList(
     hosts: Set<String>,
+    suggestions: List<String>,
     emptyText: String,
     onAdd: (String) -> Unit,
     onRemove: (String) -> Unit,
@@ -126,6 +138,34 @@ private fun HostList(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done, autoCorrectEnabled = false),
             keyboardActions = KeyboardActions(onDone = { if (input.isNotBlank()) add() }),
         )
+        val query = input.trim().lowercase().removePrefix("www.")
+        val matches = if (query.isEmpty()) emptyList() else suggestions.filter { query in it && it !in hosts }.take(MAX_SUGGESTIONS)
+        if (matches.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                matches.forEach { domain ->
+                    Text(
+                        text = "+ $domain",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MonColors.link,
+                        modifier = Modifier
+                            .background(MonColors.input)
+                            .border(1.dp, MonColors.border)
+                            .clickable(role = Role.Button) {
+                                onAdd(domain)
+                                input = ""
+                                invalid = false
+                            }
+                            .padding(horizontal = 10.dp, vertical = 7.dp),
+                    )
+                }
+            }
+        }
         GroupDivider()
         if (hosts.isEmpty()) {
             SettingsRow(title = emptyText)
@@ -146,3 +186,5 @@ private fun HostList(
         }
     }
 }
+
+private const val MAX_SUGGESTIONS = 6

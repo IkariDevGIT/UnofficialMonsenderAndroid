@@ -25,6 +25,14 @@ class SiteCatalog(private val api: MonLoaderApi) {
         return SiteMatch(SiteSupport.SUPPORTED, site.displayName())
     }
 
+    /** Every domain MonLoader's supported sites live on, for suggesting site rules. */
+    suspend fun domains(base: String, token: String): List<String> =
+        sites(base, token)
+            .flatMap { site -> listOfNotNull(Links.hostOf(site.example)) + site.hosts.map { it.lowercase().removePrefix("www.") } }
+            .filter { '.' in it }
+            .distinct()
+            .sorted()
+
     fun invalidate() {
         cache = null
     }
