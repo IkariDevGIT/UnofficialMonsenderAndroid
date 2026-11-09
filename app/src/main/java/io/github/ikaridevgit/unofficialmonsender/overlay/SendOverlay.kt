@@ -3,6 +3,13 @@ package io.github.ikaridevgit.unofficialmonsender.overlay
 import android.view.accessibility.AccessibilityManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.PathMeasure
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -160,6 +167,7 @@ fun SendOverlay(
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val heightPx = constraints.maxHeight.toFloat().coerceAtLeast(1f)
+        val badgeTop = maxHeight * 0.22f
         val thresholdPx = min(heightPx * 0.2f, with(density) { 180.dp.toPx() })
         val flingPx = with(density) { 1200.dp.toPx() }
         val minFlingDistancePx = with(density) { 32.dp.toPx() }
@@ -337,34 +345,37 @@ fun SendOverlay(
 
             Box(
                 Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = badgeTop),
+            ) {
+                AnimatedVisibility(
+                    visible = phase == OverlayPhase.Sending || phase == OverlayPhase.Sent,
+                    enter = fadeIn(tween(160)) + scaleIn(tween(220), initialScale = 0.7f),
+                    exit = fadeOut(tween(160)),
+                ) {
+                    SendBadge(sent = phase == OverlayPhase.Sent, spinner = primary)
+                }
+            }
+
+            Box(
+                Modifier
                     .align(Alignment.Center)
                     .padding(horizontal = 24.dp),
             ) {
                 AnimatedContent(
-                    targetState = phase,
+                    targetState = phase as? OverlayPhase.Failed,
                     transitionSpec = { (fadeIn(tween(180)) + scaleIn(initialScale = 0.92f)) togetherWith fadeOut(tween(120)) },
-                    contentKey = { it::class },
-                    label = "phase",
-                ) { current ->
-                    when (current) {
-                        OverlayPhase.Ready -> Spacer(Modifier.size(1.dp))
-                        OverlayPhase.Sending -> StatusPill(
-                            text = stringResource(R.string.overlay_sending),
-                            leading = {
-                                CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = primary)
-                            },
-                        )
-                        OverlayPhase.Sent -> StatusPill(
-                            text = stringResource(R.string.overlay_sent) + "  " + stringResource(R.string.kaomoji_happy),
-                            leading = {
-                                Icon(Icons.Rounded.Check, contentDescription = null, tint = StatusColors.success)
-                            },
-                        )
-                        is OverlayPhase.Failed -> FailureCard(
-                            message = sendFailureMessage(current.reason, current.detail),
+                    contentKey = { it != null },
+                    label = "failure",
+                ) { failure ->
+                    if (failure != null) {
+                        FailureCard(
+                            message = sendFailureMessage(failure.reason, failure.detail),
                             onRetry = ::startSend,
                             onClose = ::close,
                         )
+                    } else {
+                        Spacer(Modifier.size(1.dp))
                     }
                 }
             }
@@ -546,23 +557,84 @@ private fun TopGlow(color: Color, intensity: () -> Float) {
     }
 }
 
+/**
+ * Sending shows a spinner in a square badge; once MonLoader accepts the link the badge turns green,
+ * pops, draws a checkmark and sends out a ripple, so success reads at a glance without any text.
+ */
 @Composable
-private fun StatusPill(text: String, leading: @Composable () -> Unit) {
-    Surface(
-        color = MonColors.surface,
-        border = BorderStroke(1.dp, MonColors.border),
-        shadowElevation = 8.dp,
+private fun SendBadge(sent: Boolean, spinner: Color) {
+    val label = stringResource(if (sent) R.string.overlay_sent else R.string.overlay_sending)
+    val fill by animateColorAsState(if (sent) StatusColors.success else MonColors.surface, tween(220), label = "badge")
+    val pop = remember { Animatable(1f) }
+    val check = remember { Animatable(0f) }
+    val ripple = remember { Animatable(0f) }
+    LaunchedEffect(sent) {
+        if (!sent) return@LaunchedEffect
+        launch {
+            pop.snapTo(0.8f)
+            pop.animateTo(1f, spring(dampingRatio = 0.42f, stiffness = 480f))
+        }
+        launch { ripple.animateTo(1f, tween(700, easing = LinearOutSlowInEasing)) }
+        delay(90)
+        check.animateTo(1f, tween(300, easing = FastOutSlowInEasing))
+    }
+    Box(
+        modifier = Modifier
+            .size(150.dp)
+            .semantics {
+                liveRegion = LiveRegionMode.Polite
+                contentDescription = label
+            },
+        contentAlignment = Alignment.Center,
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        Canvas(Modifier.fillMaxSize()) {
+            val p = ripple.value
+            if (sent && p < 1f) {
+                val side = BADGE_SIZE.dp.toPx() * (1f + 0.75f * p)
+                drawRect(
+                    color = StatusColors.success.copy(alpha = 0.7f * (1f - p)),
+                    topLeft = Offset((size.width - side) / 2f, (size.height - side) / 2f),
+                    size = Size(side, side),
+                    style = Stroke(width = 3.dp.toPx()),
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .size(BADGE_SIZE.dp)
+                .graphicsLayer {
+                    scaleX = pop.value
+                    scaleY = pop.value
+                }
+                .background(fill)
+                .border(1.dp, if (sent) StatusColors.success else MonColors.border),
+            contentAlignment = Alignment.Center,
         ) {
-            leading()
-            Spacer(Modifier.width(10.dp))
-            Text(text, style = MaterialTheme.typography.labelLarge)
+            if (!sent) {
+                CircularProgressIndicator(Modifier.size(34.dp), strokeWidth = 3.dp, color = spinner)
+            }
+            Canvas(Modifier.size(46.dp)) {
+                val t = check.value
+                if (t <= 0f) return@Canvas
+                val mark = Path().apply {
+                    moveTo(size.width * 0.12f, size.height * 0.54f)
+                    lineTo(size.width * 0.40f, size.height * 0.80f)
+                    lineTo(size.width * 0.90f, size.height * 0.22f)
+                }
+                val measure = PathMeasure().apply { setPath(mark, false) }
+                val drawn = Path()
+                measure.getSegment(0f, measure.length * t, drawn, true)
+                drawPath(
+                    path = drawn,
+                    color = MonColors.bg,
+                    style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Square, join = StrokeJoin.Miter),
+                )
+            }
         }
     }
 }
+
+private const val BADGE_SIZE = 84
 
 @Composable
 private fun FailureCard(message: String, onRetry: () -> Unit, onClose: () -> Unit) {
@@ -647,8 +719,19 @@ fun OverlayNotice(text: String, onDone: () -> Unit) {
             .pointerInput(Unit) { awaitEachGesture { awaitFirstDown(); onDone() } },
         contentAlignment = Alignment.Center,
     ) {
-        StatusPill(text = text, leading = {
-            Icon(Icons.Rounded.Warning, contentDescription = null, tint = StatusColors.warning)
-        })
+        Surface(
+            color = MonColors.surface,
+            border = BorderStroke(1.dp, MonColors.border),
+            shadowElevation = 8.dp,
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Rounded.Warning, contentDescription = null, tint = StatusColors.warning)
+                Spacer(Modifier.width(10.dp))
+                Text(text, style = MaterialTheme.typography.labelLarge)
+            }
+        }
     }
 }
