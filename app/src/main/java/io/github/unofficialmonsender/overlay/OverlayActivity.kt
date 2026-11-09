@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Shows [SendOverlay] for deliberate requests: text shared to the app, the quick settings tile
- * (which reads the clipboard once this activity has focus), and the test button in settings.
+ * (which reads the clipboard once this activity has focus).
  */
 class OverlayActivity : ComponentActivity() {
     private var request by mutableStateOf<OverlayRequest?>(null)
@@ -68,26 +68,20 @@ class OverlayActivity : ComponentActivity() {
         request = null
         notice = null
         awaitingClipboard = false
-        when {
-            intent.action == Intent.ACTION_SEND ->
-                present(intent.getStringExtra(Intent.EXTRA_TEXT), sourcePackage = referrerPackage(), dryRun = false)
-
-            intent.getStringExtra(EXTRA_MODE) == MODE_TEST ->
-                present(intent.getStringExtra(EXTRA_URL), sourcePackage = null, dryRun = intent.getBooleanExtra(EXTRA_DRY_RUN, true))
-
-            else -> {
-                awaitingClipboard = true
-                if (hasWindowFocus()) readClipboard()
-            }
+        if (intent.action == Intent.ACTION_SEND) {
+            present(intent.getStringExtra(Intent.EXTRA_TEXT), sourcePackage = referrerPackage())
+        } else {
+            awaitingClipboard = true
+            if (hasWindowFocus()) readClipboard()
         }
     }
 
     private fun readClipboard() {
         awaitingClipboard = false
-        present(ClipboardReader.read(this)?.text, sourcePackage = null, dryRun = false)
+        present(ClipboardReader.read(this)?.text, sourcePackage = null)
     }
 
-    private fun present(text: String?, sourcePackage: String?, dryRun: Boolean) {
+    private fun present(text: String?, sourcePackage: String?) {
         val url = Links.firstLink(text)
         if (url == null) {
             notice = R.string.overlay_no_link
@@ -97,7 +91,7 @@ class OverlayActivity : ComponentActivity() {
             val container = appContainer
             options = OverlayOptions.from(container.settings.current())
             val check = container.linkInspector.inspect(url, sourcePackage, explicit = true)
-            request = OverlayRequest.from(check, sourceLabel = sourcePackage?.let { appLabel(it) }, dryRun = dryRun)
+            request = OverlayRequest.from(check, sourceLabel = sourcePackage?.let { appLabel(it) })
         }
     }
 
@@ -105,18 +99,7 @@ class OverlayActivity : ComponentActivity() {
         referrer?.takeIf { it.scheme == "android-app" }?.host?.takeIf { it != packageName }
 
     companion object {
-        private const val EXTRA_MODE = "mode"
-        private const val EXTRA_URL = "url"
-        private const val EXTRA_DRY_RUN = "dry_run"
-        private const val MODE_TEST = "test"
-
         fun clipboardIntent(context: Context) = Intent(context, OverlayActivity::class.java)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-        fun testIntent(context: Context, url: String, dryRun: Boolean) = Intent(context, OverlayActivity::class.java)
-            .putExtra(EXTRA_MODE, MODE_TEST)
-            .putExtra(EXTRA_URL, url)
-            .putExtra(EXTRA_DRY_RUN, dryRun)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 }

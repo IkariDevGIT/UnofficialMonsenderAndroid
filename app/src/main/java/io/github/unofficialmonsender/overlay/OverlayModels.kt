@@ -11,16 +11,14 @@ data class OverlayRequest(
     val siteName: String?,
     val support: SiteSupport,
     val sourceLabel: String?,
-    val dryRun: Boolean = false,
 ) {
     companion object {
-        fun from(check: LinkCheck, sourceLabel: String?, dryRun: Boolean = false) = OverlayRequest(
+        fun from(check: LinkCheck, sourceLabel: String?) = OverlayRequest(
             url = check.url,
             host = check.host,
             siteName = check.site.siteName,
             support = check.site.support,
             sourceLabel = sourceLabel,
-            dryRun = dryRun,
         )
     }
 }

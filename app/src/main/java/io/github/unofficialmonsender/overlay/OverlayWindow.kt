@@ -22,6 +22,7 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import io.github.unofficialmonsender.appContainer
+import io.github.unofficialmonsender.detection.Delivery
 import io.github.unofficialmonsender.ui.theme.MonsenderTheme
 
 /**
@@ -36,7 +37,12 @@ class OverlayWindow(private val service: AccessibilityService) {
 
     val isShowing: Boolean get() = attached != null
 
-    fun show(request: OverlayRequest, options: OverlayOptions) {
+    fun show(
+        request: OverlayRequest,
+        options: OverlayOptions,
+        onDelivery: (Delivery) -> Unit,
+        onClosed: () -> Unit,
+    ) {
         dismiss()
         val owner = OverlayOwner()
         val root = BackKeyLayout(service) { owner.onBackPressedDispatcher.onBackPressed() }
@@ -47,8 +53,14 @@ class OverlayWindow(private val service: AccessibilityService) {
                     SendOverlay(
                         request = request,
                         options = options,
-                        send = { service.appContainer.monLoader.send(request.url) },
-                        onClosed = { if (attached?.root === root) dismiss() },
+                        send = {
+                            onDelivery(Delivery.Sending)
+                            service.appContainer.monLoader.send(request.url).also { onDelivery(Delivery.of(it)) }
+                        },
+                        onClosed = {
+                            onClosed()
+                            if (attached?.root === root) dismiss()
+                        },
                     )
                 }
             }

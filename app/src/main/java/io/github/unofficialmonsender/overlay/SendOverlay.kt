@@ -176,13 +176,7 @@ fun SendOverlay(
                 glow.animateTo(0.3f, tween(700))
             }
             scope.launch {
-                val result = if (request.dryRun) {
-                    delay(650)
-                    SendResult.Queued(null)
-                } else {
-                    send()
-                }
-                when (result) {
+                when (val result = send()) {
                     is SendResult.Queued -> {
                         phase = OverlayPhase.Sent
                         launch {
@@ -354,7 +348,7 @@ fun SendOverlay(
                             },
                         )
                         OverlayPhase.Sent -> StatusPill(
-                            text = stringResource(if (request.dryRun) R.string.overlay_sent_test else R.string.overlay_sent),
+                            text = stringResource(R.string.overlay_sent),
                             leading = {
                                 Icon(Icons.Rounded.Check, contentDescription = null, tint = StatusColors.success)
                             },
@@ -447,15 +441,10 @@ private fun LinkCard(request: OverlayRequest, modifier: Modifier = Modifier) {
                 maxLines = 4,
                 overflow = TextOverflow.Ellipsis,
             )
-            val caption = when {
-                request.dryRun -> stringResource(R.string.overlay_test_caption)
-                request.sourceLabel != null -> stringResource(R.string.overlay_copied_from, request.sourceLabel)
-                else -> null
-            }
-            if (caption != null) {
+            if (request.sourceLabel != null) {
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = caption,
+                    text = stringResource(R.string.overlay_copied_from, request.sourceLabel),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.onSurfaceVariant,
                 )
@@ -616,7 +605,7 @@ private fun CountdownBar(fraction: () -> Float) {
 }
 
 @Composable
-private fun sendFailureMessage(reason: SendFailure, detail: String?): String = when (reason) {
+fun sendFailureMessage(reason: SendFailure, detail: String?): String = when (reason) {
     SendFailure.NOT_CONFIGURED -> stringResource(R.string.send_failure_not_configured)
     SendFailure.UNREACHABLE -> stringResource(R.string.send_failure_unreachable)
     SendFailure.NOT_PAIRED -> stringResource(R.string.send_failure_not_paired)

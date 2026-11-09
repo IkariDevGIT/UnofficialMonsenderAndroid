@@ -10,8 +10,8 @@
     <string name="section_monloader">MonLoader</string>
     <string name="section_detection">Link detection</string>
     <string name="section_overlay">Overlay</string>
-    <string name="section_try">Try it</string>
-    <string name="section_recent">Recent detections</string>
+    <string name="tab_detections">Detections</string>
+    <string name="tab_settings">Settings</string>
     <string name="footer">Unofficial companion app for MonLoader. Not affiliated with the monbooru project.</string>
 
     <string name="action_save">Save</string>
@@ -123,13 +123,13 @@
     <string name="auto_dismiss_seconds">%1$d s</string>
     <string name="setting_haptics">Haptic feedback</string>
 
-    <string name="try_link">Link</string>
-    <string name="try_send_for_real">Send for real</string>
-    <string name="try_send_for_real_off">Off: the overlay works normally but nothing is sent</string>
-    <string name="try_send_for_real_on">Swiping up adds the link to MonLoader\'s queue</string>
-
     <string name="recent_empty">Nothing detected yet</string>
-    <string name="recent_empty_detail">Copied links and why they did or didn\'t get a prompt show up here</string>
+    <string name="recent_empty_detail">Your last 20 copied links show up here, along with whether they were sent</string>
+    <string name="status_waiting">Waiting for swipe</string>
+    <string name="status_sending">Sending…</string>
+    <string name="status_sent">Sent to MonLoader</string>
+    <string name="status_failed">Couldn\'t send</string>
+    <string name="status_dismissed">Dismissed</string>
     <string name="outcome_shown">Prompt shown</string>
     <string name="outcome_no_link">Copied text had no link</string>
     <string name="outcome_unreadable">Couldn\'t read the clipboard</string>
@@ -147,9 +147,7 @@
     <string name="overlay_tap_to_dismiss">Tap here to dismiss</string>
     <string name="overlay_sending">Sending…</string>
     <string name="overlay_sent">Added to MonLoader\'s queue</string>
-    <string name="overlay_sent_test">Test complete, nothing was sent</string>
     <string name="overlay_copied_from">Copied from %1$s</string>
-    <string name="overlay_test_caption">Test, nothing will be sent</string>
     <string name="overlay_support_supported">Supported by MonLoader</string>
     <string name="overlay_support_image">Direct image</string>
     <string name="overlay_support_unknown">Not in MonLoader\'s site list</string>

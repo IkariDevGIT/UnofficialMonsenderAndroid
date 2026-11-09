@@ -93,10 +93,12 @@ class CopyDetectionService : AccessibilityService() {
             log.add(source, url, DetectionOutcome.of(skip))
             return
         }
-        log.add(source, url, DetectionOutcome.SHOWN)
+        val id = log.add(source, url, DetectionOutcome.SHOWN)
         overlay.show(
             request = OverlayRequest.from(check, sourceLabel = source?.let { appLabel(it) }),
             options = OverlayOptions.from(settings),
+            onDelivery = { log.setDelivery(id, it) },
+            onClosed = { log.promptClosed(id) },
         )
     }
 

@@ -21,14 +21,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.unofficialmonsender.R
 import io.github.unofficialmonsender.ui.components.SectionHeader
-import io.github.unofficialmonsender.overlay.OverlayActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,17 +36,16 @@ fun SettingsScreen(
     onOpenApps: () -> Unit,
     onOpenSites: () -> Unit,
 ) {
-    val context = LocalContext.current
+    val resources = LocalResources.current
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val connection by viewModel.connection.collectAsStateWithLifecycle()
     val pairing by viewModel.pairing.collectAsStateWithLifecycle()
     val serviceRunning by viewModel.detectionRunning.collectAsStateWithLifecycle()
-    val log by viewModel.detectionLog.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     LaunchedEffect(Unit) {
-        viewModel.messages.collect { snackbar.showSnackbar(context.getString(it)) }
+        viewModel.messages.collect { snackbar.showSnackbar(resources.getString(it)) }
     }
     LaunchedEffect(settings?.serverUrl, settings?.token) {
         if (settings != null) viewModel.refreshConnection()
@@ -61,7 +59,7 @@ fun SettingsScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
+                title = { Text(stringResource(R.string.tab_settings)) },
                 scrollBehavior = scrollBehavior,
             )
         },
@@ -71,9 +69,6 @@ fun SettingsScreen(
         if (current == null) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             return@Scaffold
-        }
-        if (!current.welcomeSeen) {
-            WelcomeDialog(onDismiss = { viewModel.update { it.copy(welcomeSeen = true) } })
         }
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -106,12 +101,6 @@ fun SettingsScreen(
             }
             item { SectionHeader(stringResource(R.string.section_overlay)) }
             item { OverlaySection(current, viewModel::update) }
-            item { SectionHeader(stringResource(R.string.section_try)) }
-            item {
-                TrySection { url, dryRun -> context.startActivity(OverlayActivity.testIntent(context, url, dryRun)) }
-            }
-            item { SectionHeader(stringResource(R.string.section_recent)) }
-            item { RecentDetections(log) }
             item {
                 Text(
                     text = stringResource(R.string.footer),
