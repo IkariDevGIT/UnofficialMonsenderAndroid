@@ -57,6 +57,7 @@ import io.github.ikaridevgit.unofficialmonsender.ui.components.ButtonRow
 import io.github.ikaridevgit.unofficialmonsender.ui.components.GroupDivider
 import io.github.ikaridevgit.unofficialmonsender.ui.components.MonBrandTitle
 import io.github.ikaridevgit.unofficialmonsender.ui.components.MonButton
+import io.github.ikaridevgit.unofficialmonsender.ui.components.MonLink
 import io.github.ikaridevgit.unofficialmonsender.ui.components.MonTopBar
 import io.github.ikaridevgit.unofficialmonsender.ui.components.PeekingMascot
 import io.github.ikaridevgit.unofficialmonsender.ui.components.SectionHeader
@@ -96,7 +97,17 @@ fun DetectionsScreen(viewModel: SettingsViewModel) {
                             .zIndex(1f),
                         verticalAlignment = Alignment.Bottom,
                     ) {
-                        SectionHeader(stringResource(R.string.section_latest), Modifier.weight(1f))
+                        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                            SectionHeader(stringResource(R.string.section_latest))
+                            if (entries.isNotEmpty()) {
+                                MonLink(
+                                    text = stringResource(R.string.action_clear),
+                                    onClick = viewModel::clearLog,
+                                    color = MonColors.fgDim,
+                                    modifier = Modifier.padding(top = 16.dp),
+                                )
+                            }
+                        }
                         PeekingMascot(Modifier.padding(end = 28.dp))
                     }
                     SettingsGroup {

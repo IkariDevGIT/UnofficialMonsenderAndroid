@@ -75,6 +75,8 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
     fun copiedByApp(text: String) = container.linkSender.copiedByApp(text)
 
+    fun clearLog() = container.detectionLog.clear()
+
     fun update(transform: (AppSettings) -> AppSettings) {
         viewModelScope.launch { container.settings.update(transform) }
     }

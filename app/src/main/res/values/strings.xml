@@ -23,6 +23,7 @@
     <string name="build_device">Device</string>
     <string name="build_android">Android</string>
     <string name="action_copy">Copy</string>
+    <string name="action_clear">clear</string>
     <string name="setting_no_log">Don\'t log, just send</string>
     <string name="setting_no_log_detail">Keeps no history at all. Links are sent but never written down, and turning this on deletes the existing log.</string>
     <string name="log_off">Not logging</string>

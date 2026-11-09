@@ -99,10 +99,12 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
     /** Turning logging off forgets everything at once, file included. */
     fun setEnabled(on: Boolean) {
         enabled = on
-        if (!on) {
-            _entries.value = emptyList()
-            file.delete()
-        }
+        if (!on) clear()
+    }
+
+    fun clear() {
+        _entries.value = emptyList()
+        file.delete()
     }
 
     fun setDelivery(id: Long, delivery: Delivery) = edit(id) { it.copy(delivery = delivery) }
