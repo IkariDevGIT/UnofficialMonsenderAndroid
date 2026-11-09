@@ -4,6 +4,11 @@ An unofficial Android companion for [MonLoader](https://github.com/monbooru/monl
 
 Not affiliated with the monbooru project.
 
+> [!WARNING]
+> This is a prototype. It was vibecoded and has not been code reviewed, so neither users nor developers reusing the code should expect a flawless app. It mainly exists to demonstrate my idea for making downloading to monbooru easier on Android.
+>
+> I won't give any in-depth support for this.
+
 ## Install
 
 1. Download the latest APK from [Releases](../../releases).
@@ -20,6 +25,10 @@ Requires Android 8.0 or newer.
    On Android 13 and newer, Android may say the setting is restricted. Tap App info, then ⋮ → Allow restricted settings, and turn the service on again.
 
 The quick settings tile and the share menu work without copy detection.
+
+## Contributing
+
+Pull requests are welcome as long as you've reviewed them at least a bit.
 
 ## License
 
