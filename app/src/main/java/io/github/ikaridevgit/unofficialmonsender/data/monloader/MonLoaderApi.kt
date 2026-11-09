@@ -1,5 +1,6 @@
 package io.github.ikaridevgit.unofficialmonsender.data.monloader
 
+import io.github.ikaridevgit.unofficialmonsender.link.Links
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
 import okhttp3.Call
@@ -59,10 +60,15 @@ class MonLoaderApi(
 
     suspend fun pairRemove(base: String, token: String) = post(base, "/api/v1/pair/remove", token, body = null)
 
-    private suspend fun get(base: String, path: String, token: String?) =
-        execute(request(base, path, token).get().build())
+    private val testServer = TestServer()
+
+    private suspend fun get(base: String, path: String, token: String?): ApiResponse {
+        if (base == Links.TEST_SERVER) return testServer.handle("GET", path, body = null)
+        return execute(request(base, path, token).get().build())
+    }
 
     private suspend fun post(base: String, path: String, token: String?, body: String?): ApiResponse {
+        if (base == Links.TEST_SERVER) return testServer.handle("POST", path, body)
         val requestBody: RequestBody = (body ?: "").toRequestBody(if (body != null) JSON_TYPE else null)
         return execute(request(base, path, token).post(requestBody).build())
     }

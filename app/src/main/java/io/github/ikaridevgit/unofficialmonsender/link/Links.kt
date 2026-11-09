@@ -25,9 +25,13 @@ object Links {
             IMAGE_EXT.containsMatchIn(uri.path.orEmpty())
     }.getOrDefault(false)
 
+    /** Server address that switches the app to the built-in fake MonLoader. */
+    const val TEST_SERVER = "test"
+
     fun normalizeServerUrl(raw: String): String? {
         var url = raw.trim()
         if (url.isEmpty()) return null
+        if (url.equals(TEST_SERVER, ignoreCase = true)) return TEST_SERVER
         if (!url.startsWith("http://", true) && !url.startsWith("https://", true)) url = "http://$url"
         url = url.trimEnd('/')
         return url.takeIf { runCatching { !URI(it).host.isNullOrEmpty() }.getOrDefault(false) }

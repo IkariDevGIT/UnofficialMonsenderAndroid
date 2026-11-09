@@ -28,6 +28,7 @@ class LinksTest {
         assertEquals("http://192.168.1.20:8456", Links.normalizeServerUrl(" 192.168.1.20:8456/ "))
         assertEquals("https://ml.example", Links.normalizeServerUrl("https://ml.example"))
         assertNull(Links.normalizeServerUrl("   "))
+        assertEquals(Links.TEST_SERVER, Links.normalizeServerUrl(" Test "))
         assertEquals("example.com", Links.normalizeHostRule("https://www.Example.com/path"))
         assertNull(Links.normalizeHostRule("not a host"))
     }

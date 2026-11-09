@@ -59,7 +59,13 @@ class MonLoaderRepository(
     suspend fun setServerUrl(raw: String): String? {
         val url = Links.normalizeServerUrl(raw) ?: return null
         val previous = settings.current()
-        settings.update { s -> if (s.serverUrl == url) s else s.copy(serverUrl = url, token = "", pairedName = "") }
+        settings.update { s ->
+            when {
+                s.serverUrl == url -> s
+                url == Links.TEST_SERVER -> s.copy(serverUrl = url, token = TestServer.TOKEN, pairedName = PairingManager.APP_NAME)
+                else -> s.copy(serverUrl = url, token = "", pairedName = "")
+            }
+        }
         if (previous.serverUrl != url) {
             catalog.invalidate()
             if (previous.isPaired) scope.launch { api.pairRemove(previous.serverUrl, previous.token) }
