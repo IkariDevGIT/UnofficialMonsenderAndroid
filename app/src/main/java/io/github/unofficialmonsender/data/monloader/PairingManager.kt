@@ -14,7 +14,7 @@ enum class PairingFailure { NOT_CONFIGURED, UNREACHABLE, ALREADY_PAIRED, DENIED,
 sealed interface PairingState {
     data object Idle : PairingState
     data object Requesting : PairingState
-    data object WaitingForApproval : PairingState
+    data class WaitingForApproval(val name: String) : PairingState
     data object Paired : PairingState
     data class Failed(val reason: PairingFailure, val detail: String? = null) : PairingState
 }
@@ -55,7 +55,15 @@ class PairingManager(
         if (base.isEmpty()) return PairingState.Failed(PairingFailure.NOT_CONFIGURED)
 
         _state.value = PairingState.Requesting
-        val offer = api.pairRequest(base, APP_NAME)
+        var number = 0
+        var candidate: String
+        var offer: ApiResponse
+        do {
+            number++
+            candidate = nameFor(number)
+            offer = api.pairRequest(base, candidate)
+        } while (offer.status == 409 && number < MAX_NUMBER)
+        val name = candidate
         if (offer.isNetworkError) return PairingState.Failed(PairingFailure.UNREACHABLE)
         val requestId = offer.decode(PairAccepted.serializer())?.requestId
         if (!offer.isSuccessful || requestId.isNullOrEmpty()) {
@@ -68,7 +76,7 @@ class PairingManager(
             return PairingState.Failed(reason, error?.error ?: "HTTP ${offer.status}")
         }
 
-        _state.value = PairingState.WaitingForApproval
+        _state.value = PairingState.WaitingForApproval(name)
         repeat(MAX_POLLS) {
             delay(POLL_INTERVAL_MS)
             val poll = api.pairStatus(base, requestId)
@@ -77,7 +85,7 @@ class PairingManager(
             when (status?.status) {
                 "approved" -> if (!status.token.isNullOrEmpty()) {
                     val saved = settings.update { s ->
-                        if (s.serverUrl == base) s.copy(token = status.token) else s
+                        if (s.serverUrl == base) s.copy(token = status.token, pairedName = name) else s
                     }
                     return if (saved.serverUrl == base) PairingState.Paired else PairingState.Idle
                 }
@@ -89,6 +97,10 @@ class PairingManager(
 
     companion object {
         const val APP_NAME = "UnofficialMonsenderAndroid"
+        private const val MAX_NUMBER = 99
+
+        /** MonLoader allows one pairing per name, so further devices pair as …Android2, …Android3. */
+        private fun nameFor(number: Int) = if (number == 1) APP_NAME else "$APP_NAME$number"
         private const val POLL_INTERVAL_MS = 1500L
         private const val MAX_POLLS = 200
     }

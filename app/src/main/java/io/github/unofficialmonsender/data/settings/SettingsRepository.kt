@@ -42,6 +42,7 @@ class SettingsRepository(context: Context) {
     private fun Preferences.toSettings() = AppSettings(
         serverUrl = this[Keys.serverUrl].orEmpty(),
         token = this[Keys.token].orEmpty(),
+        pairedName = this[Keys.pairedName].orEmpty(),
         detectionEnabled = this[Keys.detectionEnabled] ?: true,
         supportedSitesOnly = this[Keys.supportedOnly] ?: true,
         appFilterMode = this[Keys.appFilterMode]
@@ -57,6 +58,7 @@ class SettingsRepository(context: Context) {
     private fun MutablePreferences.write(s: AppSettings) {
         this[Keys.serverUrl] = s.serverUrl
         this[Keys.token] = s.token
+        this[Keys.pairedName] = s.pairedName
         this[Keys.detectionEnabled] = s.detectionEnabled
         this[Keys.supportedOnly] = s.supportedSitesOnly
         this[Keys.appFilterMode] = s.appFilterMode.name
@@ -70,6 +72,7 @@ class SettingsRepository(context: Context) {
     private object Keys {
         val serverUrl = stringPreferencesKey("server_url")
         val token = stringPreferencesKey("token")
+        val pairedName = stringPreferencesKey("paired_name")
         val detectionEnabled = booleanPreferencesKey("detection_enabled")
         val supportedOnly = booleanPreferencesKey("supported_sites_only")
         val appFilterMode = stringPreferencesKey("app_filter_mode")

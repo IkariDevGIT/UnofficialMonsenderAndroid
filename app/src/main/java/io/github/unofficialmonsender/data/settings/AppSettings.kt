@@ -5,6 +5,7 @@ enum class AppFilterMode { ANY, ONLY_SELECTED, EXCEPT_SELECTED }
 data class AppSettings(
     val serverUrl: String = "",
     val token: String = "",
+    val pairedName: String = "",
     val detectionEnabled: Boolean = true,
     val supportedSitesOnly: Boolean = true,
     val appFilterMode: AppFilterMode = AppFilterMode.ANY,

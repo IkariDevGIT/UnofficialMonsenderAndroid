@@ -166,7 +166,7 @@ private fun PairingRow(
     onUnpair: () -> Unit,
 ) {
     var confirmUnpair by remember { mutableStateOf(false) }
-    val busy = pairing == PairingState.Requesting || pairing == PairingState.WaitingForApproval
+    val busy = pairing == PairingState.Requesting || pairing is PairingState.WaitingForApproval
 
     LaunchedEffect(pairing) {
         if (pairing == PairingState.Paired) onAcknowledge()
@@ -176,14 +176,14 @@ private fun PairingRow(
         when {
             isBusy -> SettingsRow(
                 title = stringResource(R.string.pairing_waiting),
-                subtitle = stringResource(R.string.pairing_waiting_detail, PairingManager.APP_NAME),
+                subtitle = stringResource(R.string.pairing_waiting_detail, (pairing as? PairingState.WaitingForApproval)?.name ?: PairingManager.APP_NAME),
                 leading = { CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) },
                 trailing = { TextButton(onClick = onCancel) { Text(stringResource(R.string.action_cancel)) } },
             )
 
             paired -> SettingsRow(
                 title = stringResource(R.string.pairing_paired),
-                subtitle = stringResource(R.string.pairing_paired_detail, PairingManager.APP_NAME),
+                subtitle = stringResource(R.string.pairing_paired_detail, settings.pairedName.ifEmpty { PairingManager.APP_NAME }),
                 trailing = { OutlinedButton(onClick = { confirmUnpair = true }) { Text(stringResource(R.string.action_unpair)) } },
             )
 
