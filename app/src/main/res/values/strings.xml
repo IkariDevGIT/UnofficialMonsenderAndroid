@@ -11,6 +11,7 @@
     <string name="section_detection">Link detection</string>
     <string name="section_overlay">Overlay</string>
     <string name="brand_unofficial">unofficial</string>
+    <string name="mascot_label">Kitty, tap to pet her</string>
     <string name="kaomoji_happy" translatable="false">⸜(｡˃ ᵕ ˂ )⸝</string>
     <string name="kaomoji_busy" translatable="false">ꉂ(˵˃ ᗜ ˂˵)</string>
     <string name="kaomoji_sad" translatable="false">(≖_≖ )</string>
