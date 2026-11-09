@@ -90,6 +90,8 @@ import io.github.ikaridevgit.unofficialmonsender.R
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.SendFailure
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.SendResult
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.SiteSupport
+import androidx.compose.ui.zIndex
+import io.github.ikaridevgit.unofficialmonsender.ui.components.CompanionKitty
 import io.github.ikaridevgit.unofficialmonsender.ui.components.MonButton
 import io.github.ikaridevgit.unofficialmonsender.ui.theme.MonColors
 import io.github.ikaridevgit.unofficialmonsender.ui.theme.StatusColors
@@ -304,6 +306,14 @@ fun SendOverlay(
                     bouncing = !dragging && phase == OverlayPhase.Ready,
                 )
                 Spacer(Modifier.height(16.dp))
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = 520.dp)
+                        .zIndex(1f),
+                ) {
+                    CompanionKitty(Modifier.align(Alignment.BottomEnd).padding(end = 24.dp))
+                }
                 LinkCard(
                     request = request,
                     modifier = Modifier.semantics(mergeDescendants = true) {

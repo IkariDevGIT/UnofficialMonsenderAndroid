@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
@@ -76,9 +77,21 @@ import kotlin.random.Random
 val LocalKitty = compositionLocalOf<Kitty?> { null }
 
 @Composable
-fun rememberKitty(): Kitty {
+fun rememberKitty(lively: Boolean = false): Kitty {
     val scope = rememberCoroutineScope()
-    return remember { Kitty(scope) }
+    return remember { Kitty(scope, lively) }
+}
+
+/** A Kitty of her own for places outside the main screen, such as the send overlay. She's livelier there. */
+@Composable
+fun CompanionKitty(modifier: Modifier = Modifier) {
+    val kitty = rememberKitty(lively = true)
+    val meow = rememberMeow()
+    LaunchedEffect(meow) { kitty.playMeow = meow::play }
+    LaunchedEffect(kitty) { kitty.clock() }
+    CompositionLocalProvider(LocalKitty provides kitty) {
+        PeekingMascot(modifier)
+    }
 }
 
 /**
@@ -199,7 +212,7 @@ internal class Paw(rest: Offset) {
     }
 }
 
-class Kitty internal constructor(private val scope: CoroutineScope) {
+class Kitty internal constructor(private val scope: CoroutineScope, private val lively: Boolean) {
     internal val blink = Animatable(0f)
     internal val happy = Animatable(0f)
     internal val mouth = Animatable(0f)
@@ -259,7 +272,7 @@ class Kitty internal constructor(private val scope: CoroutineScope) {
 
     suspend fun blinkLoop() {
         while (true) {
-            delay(Random.nextLong(1_800, 4_200))
+            delay(if (lively) Random.nextLong(1_200, 3_000) else Random.nextLong(1_800, 4_200))
             blinkOnce()
             if (Random.nextFloat() < 0.25f) {
                 delay(160)
@@ -275,7 +288,7 @@ class Kitty internal constructor(private val scope: CoroutineScope) {
 
     suspend fun idleLoop() {
         while (true) {
-            delay(Random.nextLong(1_500, 4_000))
+            delay(if (lively) Random.nextLong(500, 1_600) else Random.nextLong(1_500, 4_000))
             if (action?.isActive == true || showing) continue
             val job = scope.launch(FullSpeed) {
                 when (Random.nextInt(10)) {
