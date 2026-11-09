@@ -55,7 +55,7 @@ jobs:
         run: echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RELEASE_KEYSTORE"
 
       - name: Test and build
-        run: ./gradlew testReleaseUnitTest assembleRelease
+        run: ./gradlew testDebugUnitTest assembleRelease
 
       - name: Verify signature
         run: |
