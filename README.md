@@ -32,4 +32,4 @@ Pull requests are welcome as long as you've reviewed them at least a bit.
 
 ## License
 
-[MIT](LICENSE)
+[0BSD](LICENSE)
