@@ -1,13 +1,13 @@
 # Unofficial MonSender
 
-An unofficial Android companion for [MonLoader](https://github.com/monbooru/monloader). Copy a link in any app, swipe up on the prompt, and it lands in MonLoader's download queue.
+An unofficial Android companion for [MonLoader](https://github.com/monbooru/monloader), inspired by [MonSender](https://github.com/monbooru/monsender). Copy a link in any app, swipe up on the prompt, and it lands in MonLoader's download queue, ready for [monbooru](https://github.com/monbooru/monbooru).
 
-Not affiliated with the monbooru project.
+This project is not affiliated with monbooru and is not made or maintained by the monbooru maintainers.
 
 > [!WARNING]
 > This is a prototype. It was vibecoded and has not been code reviewed, so neither users nor developers reusing the code should expect a flawless app. It mainly exists to demonstrate my idea for making downloading to monbooru easier on Android.
 >
-> I won't give any in-depth support for this.
+> Support is minimal and best effort only.
 
 ## Install
 
