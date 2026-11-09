@@ -14,6 +14,7 @@ data class AppSettings(
     val blockedHosts: Set<String> = emptySet(),
     val autoDismissSeconds: Int = 10,
     val haptics: Boolean = true,
+    val welcomeSeen: Boolean = false,
 ) {
     val isConfigured: Boolean get() = serverUrl.isNotEmpty()
     val isPaired: Boolean get() = token.isNotEmpty()

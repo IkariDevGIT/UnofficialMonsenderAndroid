@@ -72,6 +72,9 @@ fun SettingsScreen(
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             return@Scaffold
         }
+        if (!current.welcomeSeen) {
+            WelcomeDialog(onDismiss = { viewModel.update { it.copy(welcomeSeen = true) } })
+        }
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = padding,

@@ -26,6 +26,11 @@
     <string name="action_turn_on">Turn on</string>
     <string name="action_app_info">App info</string>
     <string name="action_show_overlay">Show overlay</string>
+    <string name="action_got_it">Got it</string>
+
+    <string name="welcome_title">Before you start</string>
+    <string name="welcome_accessibility">To notice when you copy a link, this app needs its accessibility service. Turn it on under Link detection with the \"Turn on\" button, which takes you to the right setting.</string>
+    <string name="welcome_restricted">Android may say the setting is restricted because the app wasn\'t installed from a store. If so, tap \"App info\" under Link detection, tap ⋮ in the top corner, choose \"Allow restricted settings\", then turn the service on again.</string>
     <string name="action_remove_host">Remove %1$s</string>
 
     <string name="server_address">Server address</string>

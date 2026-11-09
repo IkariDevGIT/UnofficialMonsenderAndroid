@@ -53,6 +53,7 @@ class SettingsRepository(context: Context) {
         blockedHosts = this[Keys.blockedHosts].orEmpty(),
         autoDismissSeconds = this[Keys.autoDismiss] ?: 10,
         haptics = this[Keys.haptics] ?: true,
+        welcomeSeen = this[Keys.welcomeSeen] ?: false,
     )
 
     private fun MutablePreferences.write(s: AppSettings) {
@@ -67,6 +68,7 @@ class SettingsRepository(context: Context) {
         this[Keys.blockedHosts] = s.blockedHosts
         this[Keys.autoDismiss] = s.autoDismissSeconds
         this[Keys.haptics] = s.haptics
+        this[Keys.welcomeSeen] = s.welcomeSeen
     }
 
     private object Keys {
@@ -81,5 +83,6 @@ class SettingsRepository(context: Context) {
         val blockedHosts = stringSetPreferencesKey("blocked_hosts")
         val autoDismiss = intPreferencesKey("auto_dismiss_seconds")
         val haptics = booleanPreferencesKey("haptics")
+        val welcomeSeen = booleanPreferencesKey("welcome_seen")
     }
 }
