@@ -28,7 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -74,13 +81,12 @@ fun DetectionSection(
                 }
                 Button(onClick = context::openAccessibilitySettings) { Text(stringResource(R.string.action_turn_on)) }
             }
-            if (Build.VERSION.SDK_INT >= 33) {
-                Text(
-                    text = stringResource(R.string.detection_restricted_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
-                )
+            Column(
+                modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (Build.VERSION.SDK_INT >= 33) HintText(stringResource(R.string.detection_restricted_hint))
+                TroubleshootingHint()
             }
         }
         GroupDivider()
@@ -124,6 +130,32 @@ fun DetectionSection(
             },
         )
     }
+}
+
+@Composable
+private fun HintText(text: String) = HintText(AnnotatedString(text))
+
+@Composable
+private fun HintText(text: AnnotatedString) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
+private fun TroubleshootingHint() {
+    val prefix = stringResource(R.string.detection_battery_hint)
+    val link = stringResource(R.string.detection_battery_link)
+    val linkStyle = TextLinkStyles(SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline))
+    HintText(
+        buildAnnotatedString {
+            append(prefix)
+            append(' ')
+            withLink(LinkAnnotation.Url(TROUBLESHOOTING_URL, linkStyle)) { append(link) }
+        },
+    )
 }
 
 @Composable
@@ -280,3 +312,4 @@ private fun outcomeText(outcome: DetectionOutcome): String = stringResource(
 
 private const val DEFAULT_TEST_URL = "https://safebooru.org/index.php?page=post&s=view&id=1"
 private const val MAX_VISIBLE_ENTRIES = 6
+private const val TROUBLESHOOTING_URL = "https://github.com/IkariDevGIT/UnofficialMonsenderAndroid#troubleshooting"

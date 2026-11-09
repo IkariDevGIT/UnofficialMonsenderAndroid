@@ -79,6 +79,8 @@
     <string name="detection_off">Copy detection is off</string>
     <string name="detection_off_detail">Android only lets apps read the clipboard while in use. Turning on the accessibility service lets this app notice when you copy a link.</string>
     <string name="detection_restricted_hint">If Android says the setting is restricted, open App info, tap ⋮ and choose \"Allow restricted settings\", then try again.</string>
+    <string name="detection_battery_hint">Detection keeps turning itself off?</string>
+    <string name="detection_battery_link">See troubleshooting</string>
     <string name="setting_show_overlay">Prompt for copied links</string>
     <string name="setting_show_overlay_detail">Show the send overlay when you copy a link</string>
     <string name="setting_supported_only">Supported sites only</string>
