@@ -17,7 +17,7 @@
     <string name="kaomoji_sad" translatable="false">(≖_≖ )</string>
     <string name="tab_detections">Detections</string>
     <string name="tab_settings">Settings</string>
-    <string name="section_latest">Latest copies</string>
+    <string name="section_latest">Latest links</string>
     <string name="footer">Unofficial companion app for MonLoader. Not affiliated with the monbooru project.</string>
 
     <string name="action_save">Save</string>
@@ -131,8 +131,8 @@
     <string name="auto_dismiss_seconds">%1$d s</string>
     <string name="setting_haptics">Haptic feedback</string>
 
-    <string name="recent_empty">Nothing copied yet. (－ω－) zzZ</string>
-    <string name="recent_empty_detail">Your last 20 copied links show up here, along with whether they were sent</string>
+    <string name="recent_empty">Nothing here yet. (－ω－) zzZ</string>
+    <string name="recent_empty_detail">Your last 20 links show up here, whether you copied them, shared them or sent them from the tile, along with what happened to them</string>
     <string name="status_waiting">Waiting for swipe</string>
     <string name="status_sending">Sending…</string>
     <string name="status_failed">Couldn\'t send</string>
@@ -172,6 +172,9 @@
     <string name="overlay_sending">Sending…</string>
     <string name="overlay_sent">Added to MonLoader\'s queue</string>
     <string name="overlay_copied_from">Copied from %1$s</string>
+    <string name="origin_shared_from">Shared from %1$s</string>
+    <string name="origin_shared">Shared to the app</string>
+    <string name="origin_tile">From the quick settings tile</string>
     <string name="overlay_support_supported">Supported by MonLoader</string>
     <string name="overlay_support_image">Direct image</string>
     <string name="overlay_support_unknown">Not in MonLoader\'s site list</string>

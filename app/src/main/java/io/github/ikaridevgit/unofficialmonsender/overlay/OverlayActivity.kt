@@ -15,6 +15,8 @@ import androidx.lifecycle.lifecycleScope
 import io.github.ikaridevgit.unofficialmonsender.R
 import io.github.ikaridevgit.unofficialmonsender.appContainer
 import io.github.ikaridevgit.unofficialmonsender.detection.ClipboardReader
+import io.github.ikaridevgit.unofficialmonsender.detection.DetectionOutcome
+import io.github.ikaridevgit.unofficialmonsender.detection.LinkOrigin
 import io.github.ikaridevgit.unofficialmonsender.link.Links
 import io.github.ikaridevgit.unofficialmonsender.ui.theme.MonsenderTheme
 import io.github.ikaridevgit.unofficialmonsender.util.appLabel
@@ -22,13 +24,14 @@ import kotlinx.coroutines.launch
 
 /**
  * Shows [SendOverlay] for deliberate requests: text shared to the app, the quick settings tile
- * (which reads the clipboard once this activity has focus).
+ * (which reads the clipboard once this activity has focus). Both are logged like detected copies.
  */
 class OverlayActivity : ComponentActivity() {
     private var request by mutableStateOf<OverlayRequest?>(null)
     private var options by mutableStateOf(OverlayOptions.DEFAULT)
     private var notice by mutableStateOf<Int?>(null)
     private var awaitingClipboard = false
+    private var entryId: Long? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -39,11 +42,17 @@ class OverlayActivity : ComponentActivity() {
                 val message = notice
                 when {
                     current != null -> key(current) {
+                        val id = entryId
                         SendOverlay(
                             request = current,
                             options = options,
-                            send = { appContainer.monLoader.send(current.url) },
-                            onClosed = ::finish,
+                            send = {
+                                if (id != null) appContainer.linkSender.send(id, current.url) else appContainer.monLoader.send(current.url)
+                            },
+                            onClosed = {
+                                closeEntry()
+                                finish()
+                            },
                         )
                     }
                     message != null -> OverlayNotice(stringResource(message), onDone = ::finish)
@@ -64,12 +73,23 @@ class OverlayActivity : ComponentActivity() {
         if (hasFocus && awaitingClipboard) readClipboard()
     }
 
+    override fun onDestroy() {
+        closeEntry()
+        super.onDestroy()
+    }
+
+    private fun closeEntry() {
+        entryId?.let { appContainer.detectionLog.promptClosed(it) }
+        entryId = null
+    }
+
     private fun handle(intent: Intent) {
+        closeEntry()
         request = null
         notice = null
         awaitingClipboard = false
         if (intent.action == Intent.ACTION_SEND) {
-            present(intent.getStringExtra(Intent.EXTRA_TEXT), sourcePackage = referrerPackage())
+            present(intent.getStringExtra(Intent.EXTRA_TEXT), sourcePackage = referrerPackage(), origin = LinkOrigin.SHARE)
         } else {
             awaitingClipboard = true
             if (hasWindowFocus()) readClipboard()
@@ -78,10 +98,10 @@ class OverlayActivity : ComponentActivity() {
 
     private fun readClipboard() {
         awaitingClipboard = false
-        present(ClipboardReader.read(this)?.text, sourcePackage = null)
+        present(ClipboardReader.read(this)?.text, sourcePackage = null, origin = LinkOrigin.TILE)
     }
 
-    private fun present(text: String?, sourcePackage: String?) {
+    private fun present(text: String?, sourcePackage: String?, origin: LinkOrigin) {
         val url = Links.firstLink(text)
         if (url == null) {
             notice = R.string.overlay_no_link
@@ -91,7 +111,8 @@ class OverlayActivity : ComponentActivity() {
             val container = appContainer
             options = OverlayOptions.from(container.settings.current())
             val check = container.linkInspector.inspect(url, sourcePackage, explicit = true)
-            request = OverlayRequest.from(check, sourceLabel = sourcePackage?.let { appLabel(it) })
+            entryId = container.detectionLog.add(sourcePackage, url, DetectionOutcome.SHOWN, origin)
+            request = OverlayRequest.from(check, sourceLabel = sourcePackage?.let { appLabel(it) }, origin = origin)
         }
     }
 

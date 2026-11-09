@@ -93,6 +93,7 @@ import io.github.ikaridevgit.unofficialmonsender.data.monloader.SiteSupport
 import androidx.compose.ui.zIndex
 import io.github.ikaridevgit.unofficialmonsender.ui.components.CompanionKitty
 import io.github.ikaridevgit.unofficialmonsender.ui.components.MonButton
+import io.github.ikaridevgit.unofficialmonsender.ui.components.linkOriginLabel
 import io.github.ikaridevgit.unofficialmonsender.ui.theme.MonColors
 import io.github.ikaridevgit.unofficialmonsender.ui.theme.StatusColors
 import kotlinx.coroutines.delay
@@ -446,10 +447,11 @@ private fun LinkCard(request: OverlayRequest, modifier: Modifier = Modifier) {
                 maxLines = 4,
                 overflow = TextOverflow.Ellipsis,
             )
-            if (request.sourceLabel != null) {
+            val origin = linkOriginLabel(request.origin, request.sourceLabel)
+            if (origin != null) {
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = stringResource(R.string.overlay_copied_from, request.sourceLabel),
+                    text = origin,
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.onSurfaceVariant,
                 )

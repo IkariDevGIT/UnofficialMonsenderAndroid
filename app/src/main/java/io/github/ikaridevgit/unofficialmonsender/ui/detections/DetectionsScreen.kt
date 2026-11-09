@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.DpOffset
 import androidx.core.net.toUri
+import io.github.ikaridevgit.unofficialmonsender.ui.components.linkOriginLabel
 import io.github.ikaridevgit.unofficialmonsender.ui.theme.MonColors
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -180,9 +181,10 @@ private fun EntryRow(entry: DetectionEntry, onResend: (DetectionEntry) -> Unit, 
                     modifier = Modifier.padding(top = 6.dp),
                 )
             }
-            if (app != null) {
+            val origin = linkOriginLabel(entry.origin, app)
+            if (origin != null) {
                 Text(
-                    text = stringResource(R.string.overlay_copied_from, app),
+                    text = origin,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
