@@ -3,33 +3,17 @@ package io.github.ikaridevgit.unofficialmonsender.detection
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.JobSnapshot
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.SendFailure
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.SendResult
-import io.github.ikaridevgit.unofficialmonsender.link.SkipReason
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import java.util.concurrent.atomic.AtomicLong
 
-enum class DetectionOutcome {
-    SHOWN,
-    NO_LINK,
-    UNREADABLE,
-    REPEATED,
-    NOT_CONFIGURED,
-    APP_FILTERED,
-    SITE_BLOCKED,
-    UNSUPPORTED,
-    ;
-
-    companion object {
-        fun of(reason: SkipReason): DetectionOutcome = when (reason) {
-            SkipReason.DETECTION_OFF, SkipReason.NOT_CONFIGURED -> NOT_CONFIGURED
-            SkipReason.APP_FILTERED -> APP_FILTERED
-            SkipReason.SITE_BLOCKED -> SITE_BLOCKED
-            SkipReason.UNSUPPORTED -> UNSUPPORTED
-        }
-    }
-}
+/**
+ * Only real results are logged: a link that got the prompt, or one that couldn't because MonLoader
+ * isn't set up. Copies the user's own filters skip are left out, as are false alarms.
+ */
+enum class DetectionOutcome { SHOWN, NOT_CONFIGURED }
 
 /** What happened to a link after its prompt was shown. */
 sealed interface Delivery {

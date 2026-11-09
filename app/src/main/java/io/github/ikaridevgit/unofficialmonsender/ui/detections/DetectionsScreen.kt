@@ -237,13 +237,7 @@ private fun statusText(entry: DetectionEntry): String = stringResource(
         Delivery.Dismissed -> R.string.status_dismissed
         null -> when (entry.outcome) {
             DetectionOutcome.SHOWN -> R.string.status_waiting
-            DetectionOutcome.NO_LINK -> R.string.outcome_no_link
-            DetectionOutcome.UNREADABLE -> R.string.outcome_unreadable
-            DetectionOutcome.REPEATED -> R.string.outcome_repeated
             DetectionOutcome.NOT_CONFIGURED -> R.string.outcome_not_configured
-            DetectionOutcome.APP_FILTERED -> R.string.outcome_app_filtered
-            DetectionOutcome.SITE_BLOCKED -> R.string.outcome_site_blocked
-            DetectionOutcome.UNSUPPORTED -> R.string.outcome_unsupported
         }
     },
 )

@@ -4,9 +4,11 @@ import android.accessibilityservice.AccessibilityService
 import android.os.SystemClock
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityWindowInfo
 import android.view.inputmethod.InputMethodManager
 import io.github.ikaridevgit.unofficialmonsender.appContainer
 import io.github.ikaridevgit.unofficialmonsender.link.Links
+import io.github.ikaridevgit.unofficialmonsender.link.SkipReason
 import io.github.ikaridevgit.unofficialmonsender.overlay.OverlayOptions
 import io.github.ikaridevgit.unofficialmonsender.overlay.OverlayRequest
 import io.github.ikaridevgit.unofficialmonsender.overlay.OverlayWindow
@@ -31,6 +33,7 @@ class CopyDetectionService : AccessibilityService() {
     private var lastClip: ClipSnapshot? = null
     private var lastProbeAt = 0L
     private var keyboards: Set<String> = emptySet()
+    private val launchable = HashMap<String, Boolean>()
 
     override fun onServiceConnected() {
         keyboards = getSystemService(InputMethodManager::class.java)
@@ -45,7 +48,7 @@ class CopyDetectionService : AccessibilityService() {
         if (!_running.value) return
         val pkg = event.packageName?.toString()
         if (pkg == packageName || (pkg != null && pkg in keyboards)) return
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && pkg != null && pkg !in SYSTEM_PACKAGES) {
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && pkg != null && isUserApp(pkg)) {
             foregroundPackage = pkg
         }
         if (overlay.isShowing || inCooldown()) return
@@ -55,7 +58,7 @@ class CopyDetectionService : AccessibilityService() {
         }
         if (!signal) return
 
-        val source = if (pkg == null || pkg in SYSTEM_PACKAGES) foregroundPackage else pkg
+        val source = sourceApp(pkg)
         pending?.cancel()
         pending = scope.launch {
             delay(SETTLE_DELAY_MS)
@@ -72,25 +75,14 @@ class CopyDetectionService : AccessibilityService() {
         val clip = probe.read()
         lastProbeAt = SystemClock.elapsedRealtime()
         if (Log.isLoggable(TAG, Log.DEBUG)) Log.d(TAG, "probe source=$source read=${clip != null}")
-        if (clip == null) {
-            log.add(source, null, DetectionOutcome.UNREADABLE)
-            return
-        }
-        if (clip == lastClip) {
-            log.add(source, null, DetectionOutcome.REPEATED)
-            return
-        }
+        if (clip == null || clip == lastClip) return
         lastClip = clip
 
-        val url = Links.firstLink(clip.text)
-        if (url == null) {
-            log.add(source, null, DetectionOutcome.NO_LINK)
-            return
-        }
+        val url = Links.firstLink(clip.text) ?: return
         val check = container.linkInspector.inspect(url, source, explicit = false)
         val skip = check.skipReason
         if (skip != null) {
-            log.add(source, url, DetectionOutcome.of(skip))
+            if (skip == SkipReason.NOT_CONFIGURED) log.add(source, url, DetectionOutcome.NOT_CONFIGURED)
             return
         }
         val id = log.add(source, url, DetectionOutcome.SHOWN)
@@ -104,6 +96,20 @@ class CopyDetectionService : AccessibilityService() {
             onClosed = { log.promptClosed(id) },
         )
     }
+
+    /**
+     * The app the copy happened in. Only apps with a launcher entry count, so system components
+     * that open windows of their own (biometric prompts, keyboards, SystemUI) are never named.
+     */
+    private fun sourceApp(eventPackage: String?): String? {
+        eventPackage?.takeIf { isUserApp(it) }?.let { return it }
+        val focused = windows.firstOrNull { it.type == AccessibilityWindowInfo.TYPE_APPLICATION && (it.isActive || it.isFocused) }
+        focused?.root?.packageName?.toString()?.takeIf { isUserApp(it) }?.let { return it }
+        return foregroundPackage
+    }
+
+    private fun isUserApp(pkg: String): Boolean =
+        pkg != packageName && launchable.getOrPut(pkg) { packageManager.getLaunchIntentForPackage(pkg) != null }
 
     /** Reading the clipboard makes Android post its own notice, which must not count as a new copy. */
     private fun inCooldown() = SystemClock.elapsedRealtime() - lastProbeAt < PROBE_COOLDOWN_MS
@@ -122,7 +128,7 @@ class CopyDetectionService : AccessibilityService() {
         private val _running = MutableStateFlow(false)
         val running: StateFlow<Boolean> = _running.asStateFlow()
 
-        private val SYSTEM_PACKAGES = setOf(CopySignalDetector.SYSTEM_UI, "android")
+
         private const val SETTLE_DELAY_MS = 300L
         private const val PROBE_COOLDOWN_MS = 2500L
         private const val TAG = "CopyDetection"

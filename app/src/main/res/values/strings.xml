@@ -158,13 +158,7 @@
         <item quantity="one">%d failed</item>
         <item quantity="other">%d failed</item>
     </plurals>
-    <string name="outcome_no_link">Copied text had no link</string>
-    <string name="outcome_unreadable">Couldn\'t read the clipboard</string>
-    <string name="outcome_repeated">Same clip as before</string>
     <string name="outcome_not_configured">MonLoader isn\'t set up</string>
-    <string name="outcome_app_filtered">App is filtered out</string>
-    <string name="outcome_site_blocked">Site is set to never prompt</string>
-    <string name="outcome_unsupported">Site isn\'t supported</string>
 
     <string name="overlay_pane_title">Send link to MonLoader</string>
     <string name="overlay_action_send">Send</string>
