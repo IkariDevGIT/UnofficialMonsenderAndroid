@@ -526,15 +526,17 @@ private fun TopGlow(color: Color, intensity: () -> Float) {
     Canvas(
         Modifier
             .fillMaxWidth()
-            .height(280.dp),
+            .height(360.dp),
     ) {
         val i = intensity().coerceIn(0f, 1f)
         if (i <= 0.001f) return@Canvas
         drawRect(
             brush = Brush.radialGradient(
-                colors = listOf(color.copy(alpha = 0.6f * i), Color.Transparent),
+                0f to color.copy(alpha = 0.6f * i),
+                0.45f to color.copy(alpha = 0.22f * i),
+                1f to Color.Transparent,
                 center = Offset(size.width / 2f, 0f),
-                radius = size.width * 0.85f,
+                radius = min(size.width * 0.85f, size.height),
             ),
         )
         drawRect(
