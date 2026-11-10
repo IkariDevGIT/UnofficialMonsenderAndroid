@@ -97,13 +97,19 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
     fun add(sourcePackage: String?, url: String, origin: LinkOrigin = LinkOrigin.COPY): Long? =
         put(DetectionEntry(ids.incrementAndGet(), System.currentTimeMillis(), sourcePackage, url, DetectionOutcome.SHOWN, Delivery.Waiting, origin))
 
-    /** Records that a copy couldn't be sent because MonLoader isn't set up, without the link itself. */
+    /**
+     * Records that a copy couldn't be sent because MonLoader isn't set up, without the link itself.
+     * Only the latest such entry is kept.
+     */
     fun notConfigured(sourcePackage: String?): Long? =
         put(DetectionEntry(ids.incrementAndGet(), System.currentTimeMillis(), sourcePackage, null, DetectionOutcome.NOT_CONFIGURED))
 
     private fun put(entry: DetectionEntry): Long? {
         if (!enabled) return null
-        _entries.update { (listOf(entry) + it).take(MAX_ENTRIES) }
+        _entries.update { list ->
+            val kept = if (entry.outcome == DetectionOutcome.NOT_CONFIGURED) list.filter { it.outcome != DetectionOutcome.NOT_CONFIGURED } else list
+            (listOf(entry) + kept).take(MAX_ENTRIES)
+        }
         return entry.id
     }
 
@@ -160,6 +166,10 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
         val cleaned = stored
             .filter { it.isSettled }
             .map { if (it.outcome == DetectionOutcome.NOT_CONFIGURED) it.copy(url = null) else it }
+            .let { list ->
+                val latest = list.firstOrNull { it.outcome == DetectionOutcome.NOT_CONFIGURED }
+                list.filter { it.outcome != DetectionOutcome.NOT_CONFIGURED || it === latest }
+            }
         if (cleaned != stored) write(cleaned)
         return cleaned
     }
