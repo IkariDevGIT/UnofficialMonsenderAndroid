@@ -212,7 +212,7 @@
     <string name="setting_haptics">Haptic feedback</string>
 
     <string name="recent_empty">Nothing here yet. (－ω－) zzZ</string>
-    <string name="recent_empty_detail">Your last 20 links show up here, whether you copied them, shared them or sent them from the tile, along with what happened to them</string>
+    <string name="recent_empty_detail">Links you send show up here, with what happened to them. The last 20 are kept.</string>
     <string name="status_waiting">Waiting for swipe</string>
     <string name="status_sending">Sending…</string>
     <string name="status_failed">Couldn\'t send</string>
