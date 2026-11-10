@@ -57,9 +57,10 @@ The quick settings tile and the share menu work without copy detection.
 
 **No data collection, fully offline.** There are no analytics, no tracking, no crash reporting and no accounts. The app never contacts anything except the MonLoader server you enter yourself, and it only does that to send the links you choose to send.
 
-**What "log" means here.** The *log* is the list on the Detections tab: the last 20 links you sent, with whether they arrived. It's a convenience for you, stored only on your phone, and never uploaded or shared with anyone. Nothing is written to Android's system log either.
+**What "log" means here.** The *log* is the list on the Detections tab: the last 20 links you sent, with whether they arrived, plus actual errors. It's a convenience for you, stored only on your phone, and never uploaded or shared with anyone. Nothing is written to Android's system log either.
 
 - **Only links, ever.** The app reads the clipboard only right after a copy, and only to look for a link. Anything that isn't a link is ignored on the spot and never stored anywhere. Clips marked as sensitive (passwords, one-time codes) aren't read at all.
+- **Only what you send is logged.** Close the prompt without sending and the link is forgotten. While a prompt is open the link stays in memory only.
 - **Your filters decide what's logged.** Links from apps you've filtered out, or from sites you've set to never prompt, are never logged. By default every app and site is allowed.
 - **Pausing means nothing is read.** Pause copy detection from the status card at the top of the Detections tab, or swipe the prompt down for a quick 30 minutes. While paused, Android doesn't even pass the app the signs of a copy, so the clipboard isn't touched at all. The pause carries on through app and phone restarts and ends by itself when its time is up. Sharing a link to the app and the quick settings tile still work, since you use those on purpose.
 - **Don't log, just send.** Turn this on under Settings → Privacy and the app keeps no history at all: links are sent and forgotten, the Detections tab stays empty, and the existing log is deleted. Only your settings are kept.
