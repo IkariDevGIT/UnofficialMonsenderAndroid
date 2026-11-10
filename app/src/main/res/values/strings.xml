@@ -101,7 +101,7 @@
     <string name="message_unpaired_offline">Unpaired here. MonLoader couldn\'t be reached, so remove the token there too.</string>
 
     <string name="detection_on">Copy detection is on</string>
-    <string name="detection_on_detail">Copy a link in any app to get the send prompt</string>
+    <string name="detection_on_detail">Copy a link to get the send prompt</string>
     <string name="detection_unconfigured">Set up MonLoader to get prompts</string>
     <string name="detection_unconfigured_detail">Until you enter a server address, copies are ignored and the clipboard isn\'t read</string>
     <string name="detection_off">Copy detection is off</string>
