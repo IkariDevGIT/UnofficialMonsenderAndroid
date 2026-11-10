@@ -178,7 +178,7 @@
     </plurals>
 
     <string name="apps_title">Apps</string>
-    <string name="apps_explanation">Choose which apps can trigger the prompt when you copy a link.</string>
+    <string name="apps_explanation">Choose which apps are watched. Copies in other apps are ignored without reading the clipboard.</string>
     <string name="apps_mode_any">All apps</string>
     <string name="apps_mode_only">Only selected apps</string>
     <string name="apps_mode_except">All apps except selected</string>
