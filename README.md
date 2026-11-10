@@ -5,7 +5,7 @@
 <br>
 
 > [!WARNING]
-> This is a prototype. It was vibecoded and **has not been code reviewed**, so neither users nor developers reusing the code should expect a flawless app. **It mainly exists to demonstrate my idea for making downloading to monbooru easier on Android**.
+> This is a prototype. It was vibecoded and **has not been extensively reviewed or polished**, so neither users nor developers reusing the code should expect a flawless app. **It mainly exists to demonstrate my idea for making downloading to monbooru easier on Android**.
 >
 > Support is minimal and best effort only.
 
