@@ -115,12 +115,16 @@
     <string name="tile_detail">Send the link on your clipboard from quick settings. Works without copy detection.</string>
     <string name="message_tile_added">Tile added to quick settings</string>
 
-    <string name="pause_row_title">Pause detection</string>
-    <string name="pause_row_detail">Stop noticing copies for a while</string>
+    <string name="pause_entry">pause</string>
+    <string name="pause_entry_change">change</string>
     <string name="pause_title">Pause copy detection</string>
     <string name="pause_explanation">While paused, the app doesn\'t notice copies and doesn\'t read the clipboard at all. Sharing to the app and the quick settings tile still work.</string>
-    <string name="pause_until_resumed">Until I turn it back on</string>
+    <string name="pause_for">Pause for</string>
+    <string name="pause_instead">Pause for a different time</string>
+    <string name="pause_until_resumed_short">Until I resume</string>
     <string name="pause_custom">Custom</string>
+    <string name="paused_now">Paused</string>
+    <string name="action_resume_now">Resume now</string>
     <string name="paused_title">Copy detection paused</string>
     <string name="paused_left">%1$s left of %2$s</string>
     <string name="paused_indefinite">Until you turn it back on</string>

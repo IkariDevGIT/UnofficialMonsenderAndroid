@@ -8,34 +8,46 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.ikaridevgit.unofficialmonsender.R
 import io.github.ikaridevgit.unofficialmonsender.data.settings.Pause
@@ -45,10 +57,10 @@ import io.github.ikaridevgit.unofficialmonsender.ui.components.MonButton
 import io.github.ikaridevgit.unofficialmonsender.ui.components.SettingsGroup
 import io.github.ikaridevgit.unofficialmonsender.ui.components.SettingsRow
 import io.github.ikaridevgit.unofficialmonsender.ui.components.StatusDot
-import io.github.ikaridevgit.unofficialmonsender.ui.components.monFieldColors
 import io.github.ikaridevgit.unofficialmonsender.ui.theme.MonColors
 import io.github.ikaridevgit.unofficialmonsender.ui.theme.StatusColors
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /** The wall clock, ticking once a second while shown. */
 @Composable
@@ -108,6 +120,27 @@ fun pauseStatus(pause: Pause, now: Long): String {
     return stringResource(R.string.paused_left, remainingText(pause.remaining(now)), pauseLength(pause.amount, unit))
 }
 
+/** "pause ›" style trailing hint, so a row reads as the way into the pause menu. */
+@Composable
+fun RowScope.SubmenuHint(text: String) {
+    Text(text, style = MaterialTheme.typography.labelLarge, color = MonColors.link)
+    Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = MonColors.link)
+}
+
+/** Top-of-screen status on the Detections tab while detection runs; tapping it opens the pause menu. */
+@Composable
+fun DetectionOnCard(onOpenPause: () -> Unit) {
+    SettingsGroup {
+        SettingsRow(
+            title = stringResource(R.string.detection_on),
+            subtitle = stringResource(R.string.detection_on_detail),
+            leading = { StatusDot(StatusColors.success) },
+            trailing = { SubmenuHint(stringResource(R.string.pause_entry)) },
+            onClick = onOpenPause,
+        )
+    }
+}
+
 /** Top-of-screen notice on the Detections tab while detection is paused. */
 @Composable
 fun PausedCard(pause: Pause, now: Long, onChange: () -> Unit, onResume: () -> Unit) {
@@ -141,127 +174,208 @@ fun PausedCard(pause: Pause, now: Long, onChange: () -> Unit, onResume: () -> Un
 }
 
 /**
- * Pick how long to pause: a preset, a custom length, or until turned back on. While a pause is
- * running, the dialog also offers to resume right away.
+ * The pause menu: tap a length and detection pauses right away. While a pause runs, its status
+ * and a resume button sit on top, and the chosen length is marked.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PauseDialog(active: Pause?, onPause: (Pause) -> Unit, onResume: () -> Unit, onDismiss: () -> Unit) {
+fun PauseSheet(active: Pause?, onPause: (Pause) -> Unit, onResume: () -> Unit, onDismiss: () -> Unit) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
     val now = rememberNow()
-    var amountText by rememberSaveable { mutableStateOf("2") }
-    var unit by rememberSaveable { mutableStateOf(PauseUnit.HOURS) }
-    var unitMenu by remember { mutableStateOf(false) }
-    val amount = amountText.toIntOrNull()?.takeIf { it in 1..Pause.MAX_AMOUNT }
 
-    fun choose(pause: Pause) {
-        onPause(pause)
-        onDismiss()
+    fun finish(action: () -> Unit) {
+        action()
+        scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() }
     }
 
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        modifier = Modifier.border(1.dp, MonColors.border),
+        sheetState = sheetState,
+        shape = RectangleShape,
         containerColor = MonColors.surface,
-        title = { Text(stringResource(R.string.pause_title)) },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                Text(
-                    text = stringResource(R.string.pause_explanation),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MonColors.fgDim,
-                )
-                if (active != null) {
-                    Text(
-                        text = stringResource(R.string.paused_title) + " · " + pauseStatus(active, now),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = StatusColors.warning,
-                        modifier = Modifier.padding(top = 10.dp),
-                    )
-                }
-                Spacer(Modifier.height(10.dp))
-                Pause.PRESETS.forEach { (n, u) ->
-                    PauseOption(pauseLength(n, u)) { choose(Pause.of(n, u)) }
-                }
-                PauseOption(stringResource(R.string.pause_until_resumed)) { choose(Pause.indefinite()) }
+        contentColor = MonColors.fg,
+        scrimColor = MonColors.bg.copy(alpha = 0.6f),
+    ) {
+        Column(
+            Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(start = 20.dp, end = 20.dp, bottom = 28.dp),
+        ) {
+            Text(stringResource(R.string.pause_title), style = MaterialTheme.typography.titleLarge)
+            Text(
+                text = stringResource(R.string.pause_explanation),
+                style = MaterialTheme.typography.bodySmall,
+                color = MonColors.fgDim,
+                modifier = Modifier.padding(top = 6.dp),
+            )
 
-                Text(
-                    text = stringResource(R.string.pause_custom).uppercase(),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MonColors.fgDim,
-                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
-                        value = amountText,
-                        onValueChange = { text -> amountText = text.filter(Char::isDigit).take(3) },
-                        singleLine = true,
-                        isError = amount == null,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = monFieldColors(),
-                        shape = MaterialTheme.shapes.small,
-                        modifier = Modifier.width(88.dp),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Box {
-                        MonButton(unitWord(unit, amount ?: 2) + " ▾", onClick = { unitMenu = true })
-                        DropdownMenu(
-                            expanded = unitMenu,
-                            onDismissRequest = { unitMenu = false },
-                            shape = MaterialTheme.shapes.small,
-                            containerColor = MonColors.surface,
-                            border = BorderStroke(1.dp, MonColors.border),
-                        ) {
-                            PauseUnit.entries.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(unitWord(option, amount ?: 2), style = MaterialTheme.typography.bodyMedium) },
-                                    onClick = {
-                                        unit = option
-                                        unitMenu = false
-                                    },
-                                )
-                            }
-                        }
+            if (active != null) {
+                Row(
+                    modifier = Modifier
+                        .padding(top = 18.dp)
+                        .fillMaxWidth()
+                        .border(1.dp, StatusColors.warning)
+                        .padding(start = 14.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    StatusDot(StatusColors.warning)
+                    Column(
+                        Modifier
+                            .padding(start = 12.dp)
+                            .weight(1f),
+                    ) {
+                        Text(stringResource(R.string.paused_now), style = MaterialTheme.typography.labelLarge, color = StatusColors.warning)
+                        Text(pauseStatus(active, now), style = MaterialTheme.typography.bodySmall, color = MonColors.fgDim)
                     }
+                    MonButton(stringResource(R.string.action_resume_now), onClick = { finish(onResume) }, accent = true)
                 }
+            }
+
+            SheetLabel(stringResource(if (active != null) R.string.pause_instead else R.string.pause_for))
+            val choices = Pause.PRESETS.map { (n, u) -> PauseChoice(pauseLength(n, u), n, u) }
+            choices.chunked(2).forEach { pair ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 10.dp),
-                    horizontalArrangement = Arrangement.End,
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    MonButton(
-                        text = stringResource(R.string.action_pause),
-                        onClick = { amount?.let { choose(Pause.of(it, unit)) } },
-                        enabled = amount != null,
-                    )
+                    pair.forEach { choice ->
+                        PauseTile(
+                            text = choice.label,
+                            current = active?.amount == choice.amount && active.unit == choice.unit,
+                            onClick = { finish { onPause(Pause.of(choice.amount, choice.unit)) } },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    if (pair.size == 1) {
+                        PauseTile(
+                            text = stringResource(R.string.pause_until_resumed_short),
+                            current = active?.indefinite == true,
+                            onClick = { finish { onPause(Pause.indefinite()) } },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
-        },
-        confirmButton = {
-            if (active != null) {
-                MonButton(
-                    text = stringResource(R.string.action_resume),
-                    onClick = {
-                        onResume()
-                        onDismiss()
-                    },
-                    accent = true,
-                )
-            }
-        },
-        dismissButton = { MonButton(stringResource(R.string.action_cancel), onClick = onDismiss) },
+
+            SheetLabel(stringResource(R.string.pause_custom))
+            CustomPause(onPause = { pause -> finish { onPause(pause) } })
+        }
+    }
+}
+
+private class PauseChoice(val label: String, val amount: Int, val unit: PauseUnit)
+
+@Composable
+private fun SheetLabel(text: String) {
+    Text(
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelMedium,
+        color = MonColors.fgDim,
+        modifier = Modifier.padding(top = 22.dp, bottom = 10.dp),
     )
 }
 
 @Composable
-private fun PauseOption(text: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
+private fun PauseTile(text: String, current: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .height(TILE_HEIGHT)
+            .background(MonColors.input)
+            .border(1.dp, if (current) StatusColors.warning else MonColors.border)
             .clickable(role = Role.Button, onClick = onClick)
-            .padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(horizontal = 8.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        Text("> ", style = MaterialTheme.typography.bodyLarge, color = MonColors.accent)
-        Text(text, style = MaterialTheme.typography.bodyLarge, color = MonColors.fg)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            color = if (current) StatusColors.warning else MonColors.fg,
+            textAlign = TextAlign.Center,
+        )
     }
 }
+
+/** One even row: amount, unit and a go button, all the same height as the tiles above. */
+@Composable
+private fun CustomPause(onPause: (Pause) -> Unit) {
+    var amountText by rememberSaveable { mutableStateOf("2") }
+    var unit by rememberSaveable { mutableStateOf(PauseUnit.HOURS) }
+    var unitMenu by remember { mutableStateOf(false) }
+    val amount = amountText.toIntOrNull()?.takeIf { it in 1..Pause.MAX_AMOUNT }
+    val apply = { amount?.let { onPause(Pause.of(it, unit)) } }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .width(72.dp)
+                .height(TILE_HEIGHT)
+                .background(MonColors.input)
+                .border(1.dp, if (amount == null) MaterialTheme.colorScheme.error else MonColors.border),
+            contentAlignment = Alignment.Center,
+        ) {
+            BasicTextField(
+                value = amountText,
+                onValueChange = { text -> amountText = text.filter(Char::isDigit).take(3) },
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MonColors.fg, textAlign = TextAlign.Center),
+                cursorBrush = SolidColor(MonColors.link),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+            )
+        }
+        Box(Modifier.weight(1f)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(TILE_HEIGHT)
+                    .background(MonColors.input)
+                    .border(1.dp, MonColors.border)
+                    .clickable(role = Role.DropdownList) { unitMenu = true }
+                    .padding(start = 12.dp, end = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = unitWord(unit, amount ?: 2),
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, tint = MonColors.fgDim)
+            }
+            DropdownMenu(
+                expanded = unitMenu,
+                onDismissRequest = { unitMenu = false },
+                shape = MaterialTheme.shapes.small,
+                containerColor = MonColors.surface,
+                border = BorderStroke(1.dp, MonColors.border),
+            ) {
+                PauseUnit.entries.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(unitWord(option, amount ?: 2), style = MaterialTheme.typography.bodyMedium) },
+                        onClick = {
+                            unit = option
+                            unitMenu = false
+                        },
+                    )
+                }
+            }
+        }
+        MonButton(
+            text = stringResource(R.string.action_pause),
+            onClick = { apply() },
+            enabled = amount != null,
+            accent = true,
+            modifier = Modifier.height(TILE_HEIGHT),
+        )
+    }
+}
+
+private val TILE_HEIGHT = 48.dp

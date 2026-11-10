@@ -55,7 +55,7 @@ The quick settings tile and the share menu work without copy detection.
 
 - **Only links, ever.** The app reads the clipboard only right after a copy, and only to look for a link. Anything that isn't a link is ignored on the spot and never stored anywhere. Clips marked as sensitive (passwords, one-time codes) aren't read at all.
 - **Your filters decide what's logged.** Links from apps you've filtered out, or from sites you've set to never prompt, are never logged. By default every app and site is allowed.
-- **Pausing means nothing is read.** Pause copy detection under Settings → Link detection, or swipe the prompt down for a quick 30 minutes. While paused, Android doesn't even pass the app the signs of a copy, so the clipboard isn't touched at all. The pause carries on through app and phone restarts and ends by itself when its time is up. Sharing a link to the app and the quick settings tile still work, since you use those on purpose.
+- **Pausing means nothing is read.** Pause copy detection from the status card at the top of the Detections tab, or swipe the prompt down for a quick 30 minutes. While paused, Android doesn't even pass the app the signs of a copy, so the clipboard isn't touched at all. The pause carries on through app and phone restarts and ends by itself when its time is up. Sharing a link to the app and the quick settings tile still work, since you use those on purpose.
 - **Don't log, just send.** Turn this on under Settings → Privacy and the app keeps no history at all: links are sent and forgotten, the Detections tab stays empty, and the existing log is deleted. Only your settings are kept.
 
 ## Troubleshooting

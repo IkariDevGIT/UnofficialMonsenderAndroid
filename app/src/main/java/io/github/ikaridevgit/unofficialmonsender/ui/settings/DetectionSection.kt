@@ -13,7 +13,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import io.github.ikaridevgit.unofficialmonsender.data.settings.Pause
-import io.github.ikaridevgit.unofficialmonsender.ui.pause.PauseDialog
+import io.github.ikaridevgit.unofficialmonsender.ui.pause.PauseSheet
+import io.github.ikaridevgit.unofficialmonsender.ui.pause.SubmenuHint
 import io.github.ikaridevgit.unofficialmonsender.ui.pause.pauseStatus
 import io.github.ikaridevgit.unofficialmonsender.ui.pause.rememberNow
 import androidx.compose.ui.platform.LocalContext
@@ -56,7 +57,7 @@ fun DetectionSection(
     val pause = settings.activePause(now)
     var pauseDialog by rememberSaveable { mutableStateOf(false) }
     if (pauseDialog) {
-        PauseDialog(
+        PauseSheet(
             active = pause,
             onPause = onSetPause,
             onResume = { onSetPause(null) },
@@ -64,11 +65,27 @@ fun DetectionSection(
         )
     }
     SettingsGroup {
-        SettingsRow(
-            title = stringResource(if (serviceRunning) R.string.detection_on else R.string.detection_off),
-            subtitle = stringResource(if (serviceRunning) R.string.detection_on_detail else R.string.detection_off_detail),
-            leading = { StatusDot(if (serviceRunning) StatusColors.success else MaterialTheme.colorScheme.onSurfaceVariant) },
-        )
+        when {
+            !serviceRunning -> SettingsRow(
+                title = stringResource(R.string.detection_off),
+                subtitle = stringResource(R.string.detection_off_detail),
+                leading = { StatusDot(MaterialTheme.colorScheme.onSurfaceVariant) },
+            )
+            pause != null -> SettingsRow(
+                title = stringResource(R.string.paused_title),
+                subtitle = pauseStatus(pause, now),
+                leading = { StatusDot(StatusColors.warning) },
+                trailing = { SubmenuHint(stringResource(R.string.pause_entry_change)) },
+                onClick = { pauseDialog = true },
+            )
+            else -> SettingsRow(
+                title = stringResource(R.string.detection_on),
+                subtitle = stringResource(R.string.detection_on_detail),
+                leading = { StatusDot(StatusColors.success) },
+                trailing = { SubmenuHint(stringResource(R.string.pause_entry)) },
+                onClick = { pauseDialog = true },
+            )
+        }
         if (!serviceRunning) {
             ButtonRow {
                 if (Build.VERSION.SDK_INT >= 33) {
@@ -84,22 +101,6 @@ fun DetectionSection(
                 TroubleshootingHint()
             }
         }
-        GroupDivider()
-        SettingsRow(
-            title = stringResource(if (pause != null) R.string.paused_title else R.string.pause_row_title),
-            subtitle = if (pause != null) pauseStatus(pause, now) else stringResource(R.string.pause_row_detail),
-            leading = if (pause != null) {
-                { StatusDot(StatusColors.warning) }
-            } else {
-                null
-            },
-            trailing = {
-                MonButton(
-                    text = stringResource(if (pause != null) R.string.action_change else R.string.action_pause),
-                    onClick = { pauseDialog = true },
-                )
-            },
-        )
         GroupDivider()
         SwitchRow(
             title = stringResource(R.string.setting_show_overlay),

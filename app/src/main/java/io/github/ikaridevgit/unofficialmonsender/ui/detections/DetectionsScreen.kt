@@ -13,7 +13,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import io.github.ikaridevgit.unofficialmonsender.ui.pause.PauseDialog
+import io.github.ikaridevgit.unofficialmonsender.ui.pause.PauseSheet
+import io.github.ikaridevgit.unofficialmonsender.ui.pause.DetectionOnCard
 import io.github.ikaridevgit.unofficialmonsender.ui.pause.PausedCard
 import io.github.ikaridevgit.unofficialmonsender.ui.pause.rememberNow
 import androidx.compose.ui.unit.DpOffset
@@ -84,7 +85,7 @@ fun DetectionsScreen(viewModel: SettingsViewModel) {
     val pause = settings?.activePause(now)
     var pauseDialog by rememberSaveable { mutableStateOf(false) }
     if (pauseDialog) {
-        PauseDialog(
+        PauseSheet(
             active = pause,
             onPause = viewModel::setPause,
             onResume = { viewModel.setPause(null) },
@@ -116,6 +117,13 @@ fun DetectionsScreen(viewModel: SettingsViewModel) {
             if (!serviceRunning) {
                 item { Spacer(Modifier.height(16.dp)) }
                 item { DetectionOffCard() }
+            } else if (pause == null) {
+                item(key = "running") {
+                    Column(Modifier.animateItem()) {
+                        Spacer(Modifier.height(16.dp))
+                        DetectionOnCard(onOpenPause = { pauseDialog = true })
+                    }
+                }
             }
             item {
                 Column {
