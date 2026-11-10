@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -181,6 +182,7 @@ fun SendOverlay(
         val flingPx = with(density) { 1200.dp.toPx() }
         val minFlingDistancePx = with(density) { 32.dp.toPx() }
         val canSwipe = phase == OverlayPhase.Ready || phase is OverlayPhase.Failed
+        val bottomAlpha = animateFloatAsState(if (canSwipe) 1f else 0f, tween(160), label = "bottomHints")
 
         fun startPause() {
             val pause = onPause ?: return
@@ -448,7 +450,7 @@ fun SendOverlay(
                     .align(Alignment.BottomCenter)
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))
                     .padding(bottom = 36.dp, start = 24.dp, end = 24.dp)
-                    .graphicsLayer { alpha = reveal.value * if (phase == OverlayPhase.Paused) 0f else 1f },
+                    .graphicsLayer { alpha = reveal.value * bottomAlpha.value },
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 if (touchExploration && canSwipe) {
@@ -760,59 +762,67 @@ private fun SendBadge(sent: Boolean, spinner: Color) {
         delay(90)
         check.animateTo(1f, tween(300, easing = FastOutSlowInEasing))
     }
-    Box(
-        modifier = Modifier
-            .size(150.dp)
-            .semantics {
-                liveRegion = LiveRegionMode.Polite
-                contentDescription = label
-            },
-        contentAlignment = Alignment.Center,
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.semantics {
+            liveRegion = LiveRegionMode.Polite
+            contentDescription = label
+        },
     ) {
-        Canvas(Modifier.fillMaxSize()) {
-            val p = ripple.value
-            if (sent && p < 1f) {
-                val side = BADGE_SIZE.dp.toPx() * (1f + 0.75f * p)
-                drawRect(
-                    color = StatusColors.success.copy(alpha = 0.7f * (1f - p)),
-                    topLeft = Offset((size.width - side) / 2f, (size.height - side) / 2f),
-                    size = Size(side, side),
-                    style = Stroke(width = 3.dp.toPx()),
-                )
-            }
-        }
         Box(
-            modifier = Modifier
-                .size(BADGE_SIZE.dp)
-                .graphicsLayer {
-                    scaleX = pop.value
-                    scaleY = pop.value
-                }
-                .background(fill)
-                .border(1.dp, if (sent) StatusColors.success else MonColors.border),
+            modifier = Modifier.size(150.dp),
             contentAlignment = Alignment.Center,
         ) {
-            if (!sent) {
-                CircularProgressIndicator(Modifier.size(34.dp), strokeWidth = 3.dp, color = spinner)
-            }
-            Canvas(Modifier.size(46.dp)) {
-                val t = check.value
-                if (t <= 0f) return@Canvas
-                val mark = Path().apply {
-                    moveTo(size.width * 0.12f, size.height * 0.54f)
-                    lineTo(size.width * 0.40f, size.height * 0.80f)
-                    lineTo(size.width * 0.90f, size.height * 0.22f)
+            Canvas(Modifier.fillMaxSize()) {
+                val p = ripple.value
+                if (sent && p < 1f) {
+                    val side = BADGE_SIZE.dp.toPx() * (1f + 0.75f * p)
+                    drawRect(
+                        color = StatusColors.success.copy(alpha = 0.7f * (1f - p)),
+                        topLeft = Offset((size.width - side) / 2f, (size.height - side) / 2f),
+                        size = Size(side, side),
+                        style = Stroke(width = 3.dp.toPx()),
+                    )
                 }
-                val measure = PathMeasure().apply { setPath(mark, false) }
-                val drawn = Path()
-                measure.getSegment(0f, measure.length * t, drawn, true)
-                drawPath(
-                    path = drawn,
-                    color = MonColors.bg,
-                    style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Square, join = StrokeJoin.Miter),
-                )
+            }
+            Box(
+                modifier = Modifier
+                    .size(BADGE_SIZE.dp)
+                    .graphicsLayer {
+                        scaleX = pop.value
+                        scaleY = pop.value
+                    }
+                    .background(fill)
+                    .border(1.dp, if (sent) StatusColors.success else MonColors.border),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (!sent) {
+                    CircularProgressIndicator(Modifier.size(34.dp), strokeWidth = 3.dp, color = spinner)
+                }
+                Canvas(Modifier.size(46.dp)) {
+                    val t = check.value
+                    if (t <= 0f) return@Canvas
+                    val mark = Path().apply {
+                        moveTo(size.width * 0.12f, size.height * 0.54f)
+                        lineTo(size.width * 0.40f, size.height * 0.80f)
+                        lineTo(size.width * 0.90f, size.height * 0.22f)
+                    }
+                    val measure = PathMeasure().apply { setPath(mark, false) }
+                    val drawn = Path()
+                    measure.getSegment(0f, measure.length * t, drawn, true)
+                    drawPath(
+                        path = drawn,
+                        color = MonColors.bg,
+                        style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Square, join = StrokeJoin.Miter),
+                    )
+                }
             }
         }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = Color.White.copy(alpha = 0.85f),
+        )
     }
 }
 
