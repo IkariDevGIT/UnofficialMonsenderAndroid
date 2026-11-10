@@ -327,8 +327,13 @@ fun SendOverlay(
                     .background(Color.Black.copy(alpha = SCRIM_ALPHA)),
             )
 
+            val sendGlow by animateColorAsState(
+                if (phase == OverlayPhase.Sent) StatusColors.success else primary,
+                tween(220),
+                label = "sendGlow",
+            )
             EdgeGlow(
-                color = primary,
+                color = sendGlow,
                 intensity = { (glow.value + dragProgress * 0.35f) * reveal.value },
                 top = true,
                 modifier = Modifier.align(Alignment.TopCenter),
