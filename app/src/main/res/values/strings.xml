@@ -107,13 +107,13 @@
     <string name="detection_restricted_hint">If Android says the setting is restricted, open App info, tap ⋮ and choose \"Allow restricted settings\", then try again.</string>
     <string name="detection_battery_hint">Detection keeps turning itself off?</string>
     <string name="detection_battery_link">See troubleshooting</string>
-    <string name="setting_site_mode">Sites that get a prompt</string>
-    <string name="setting_site_mode_detail">The \"Always prompt\" and \"Never prompt\" lists below come first</string>
+    <string name="setting_site_mode">Sites to watch</string>
+    <string name="setting_site_mode_detail">Links from other sites are ignored: no prompt, nothing logged. The lists below come first.</string>
     <string name="site_mode_supported">All sites MonLoader supports</string>
     <string name="site_mode_all">All sites</string>
     <string name="site_mode_none">No sites by default</string>
-    <string name="setting_allow_images">Always allow direct images</string>
-    <string name="setting_allow_images_detail">Links straight to an image file get a prompt on any site you haven\'t blocked</string>
+    <string name="setting_allow_images">Always watch direct images</string>
+    <string name="setting_allow_images_detail">Links straight to an image file are watched on every site you don\'t ignore</string>
     <string name="tile_title">Quick settings tile</string>
     <string name="tile_detail">Send the link on your clipboard from quick settings. Works without copy detection.</string>
     <string name="message_tile_added">Tile added to quick settings</string>
@@ -193,15 +193,15 @@
     </plurals>
 
     <string name="sites_title">Websites</string>
-    <string name="sites_explanation">Rules match a domain and all its subdomains. \"Always prompt\" also covers sites missing from MonLoader\'s list.</string>
+    <string name="sites_explanation">Links from ignored sites get no prompt and are never logged. Rules match a domain and all its subdomains. \"Always watch\" also covers sites missing from MonLoader\'s list.</string>
     <string name="sites_default">By default</string>
-    <string name="sites_always">Always prompt</string>
+    <string name="sites_always">Always watch</string>
     <string name="sites_always_empty">No sites added</string>
-    <string name="sites_never">Never prompt</string>
+    <string name="sites_never">Always ignore</string>
     <string name="sites_never_empty">No sites added</string>
     <string name="sites_input_hint">example.com</string>
     <string name="sites_input_invalid">Enter a domain such as example.com</string>
-    <string name="sites_summary">%1$d always · %2$d never</string>
+    <string name="sites_summary">%1$d watched · %2$d ignored</string>
 
     <string name="setting_auto_dismiss">Close automatically</string>
     <string name="setting_auto_dismiss_detail">Hide the overlay if you don\'t interact with it</string>
