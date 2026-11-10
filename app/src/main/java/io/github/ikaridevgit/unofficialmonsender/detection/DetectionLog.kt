@@ -141,12 +141,22 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
         _entries.update { list -> list.map { if (it.id == id) transform(it) else it } }
     }
 
-    private fun load(): List<DetectionEntry> = runCatching {
+    /**
+     * Entries that must no longer be kept are removed from the file right away, not just from
+     * memory, and a file that can't be read is deleted rather than left behind.
+     */
+    private fun load(): List<DetectionEntry> {
         if (!file.exists()) return emptyList()
-        json.decodeFromString(serializer, file.readText())
+        val stored = runCatching { json.decodeFromString(serializer, file.readText()) }.getOrElse {
+            file.delete()
+            return emptyList()
+        }
+        val cleaned = stored
             .filter { it.isSettled }
             .map { if (it.outcome == DetectionOutcome.NOT_CONFIGURED) it.copy(url = null) else it }
-    }.getOrDefault(emptyList())
+        if (cleaned != stored) save(cleaned)
+        return cleaned
+    }
 
     private fun save(list: List<DetectionEntry>) {
         if (!enabled) return
