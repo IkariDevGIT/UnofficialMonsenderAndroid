@@ -19,8 +19,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +33,12 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -174,6 +183,71 @@ fun SwitchRow(
             )
         },
     )
+}
+
+/** A row that shows the chosen option and opens a menu of [options] when tapped. */
+@Composable
+fun DropdownRow(
+    title: String,
+    options: List<String>,
+    selected: Int,
+    onSelect: (Int) -> Unit,
+    detail: String? = null,
+) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .clickable(role = Role.DropdownList) { open = true }
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge, color = MonColors.fg)
+                Text(
+                    text = options.getOrElse(selected) { "" },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MonColors.link,
+                )
+                if (detail != null) {
+                    Text(detail, style = MaterialTheme.typography.bodySmall, color = MonColors.fgDim)
+                }
+            }
+            Spacer(Modifier.width(12.dp))
+            Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, tint = MonColors.fgDim)
+        }
+        DropdownMenu(
+            expanded = open,
+            onDismissRequest = { open = false },
+            offset = DpOffset(16.dp, 0.dp),
+            shape = MaterialTheme.shapes.small,
+            containerColor = MonColors.surface,
+            border = BorderStroke(1.dp, MonColors.border),
+        ) {
+            options.forEachIndexed { index, label ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (index == selected) MonColors.link else MonColors.fg,
+                        )
+                    },
+                    trailingIcon = if (index == selected) {
+                        { Icon(Icons.Rounded.Check, contentDescription = null, tint = MonColors.link) }
+                    } else {
+                        null
+                    },
+                    onClick = {
+                        open = false
+                        onSelect(index)
+                    },
+                )
+            }
+        }
+    }
 }
 
 @Composable

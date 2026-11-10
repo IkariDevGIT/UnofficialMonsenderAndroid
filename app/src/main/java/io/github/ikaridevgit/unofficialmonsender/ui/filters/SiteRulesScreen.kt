@@ -35,8 +35,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.github.ikaridevgit.unofficialmonsender.R
 import io.github.ikaridevgit.unofficialmonsender.data.settings.AppSettings
+import io.github.ikaridevgit.unofficialmonsender.data.settings.SiteMode
 import io.github.ikaridevgit.unofficialmonsender.link.Links
+import io.github.ikaridevgit.unofficialmonsender.ui.components.DropdownRow
 import io.github.ikaridevgit.unofficialmonsender.ui.components.GroupDivider
+import io.github.ikaridevgit.unofficialmonsender.ui.components.SwitchRow
 import io.github.ikaridevgit.unofficialmonsender.ui.components.MonLink
 import io.github.ikaridevgit.unofficialmonsender.ui.components.PromptPrefix
 import io.github.ikaridevgit.unofficialmonsender.ui.components.SectionHeader
@@ -62,6 +65,25 @@ fun SiteRulesScreen(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 )
             }
+            item { SectionHeader(stringResource(R.string.sites_default)) }
+            item {
+                SettingsGroup {
+                    DropdownRow(
+                        title = stringResource(R.string.setting_site_mode),
+                        options = SiteMode.entries.map { stringResource(siteModeLabel(it)) },
+                        selected = settings.siteMode.ordinal,
+                        onSelect = { index -> onUpdate { it.copy(siteMode = SiteMode.entries[index]) } },
+                        detail = stringResource(R.string.setting_site_mode_detail),
+                    )
+                    GroupDivider()
+                    SwitchRow(
+                        title = stringResource(R.string.setting_allow_images),
+                        subtitle = stringResource(R.string.setting_allow_images_detail),
+                        checked = settings.allowImages,
+                        onCheckedChange = { on -> onUpdate { it.copy(allowImages = on) } },
+                    )
+                }
+            }
             item { SectionHeader(stringResource(R.string.sites_always)) }
             item {
                 HostList(
@@ -84,6 +106,12 @@ fun SiteRulesScreen(
             }
         }
     }
+}
+
+fun siteModeLabel(mode: SiteMode): Int = when (mode) {
+    SiteMode.SUPPORTED -> R.string.site_mode_supported
+    SiteMode.ALL -> R.string.site_mode_all
+    SiteMode.NONE -> R.string.site_mode_none
 }
 
 @Composable

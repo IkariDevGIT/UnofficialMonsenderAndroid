@@ -45,7 +45,9 @@ class SettingsRepository(context: Context) {
         token = this[Keys.token].orEmpty(),
         pairedName = this[Keys.pairedName].orEmpty(),
         detectionEnabled = this[Keys.detectionEnabled] ?: true,
-        supportedSitesOnly = this[Keys.supportedOnly] ?: true,
+        siteMode = this[Keys.siteMode]?.let { name -> SiteMode.entries.firstOrNull { it.name == name } }
+            ?: if (this[Keys.supportedOnly] == false) SiteMode.ALL else SiteMode.SUPPORTED,
+        allowImages = this[Keys.allowImages] ?: true,
         appFilterMode = this[Keys.appFilterMode]
             ?.let { name -> AppFilterMode.entries.firstOrNull { it.name == name } }
             ?: AppFilterMode.ANY,
@@ -85,7 +87,9 @@ class SettingsRepository(context: Context) {
         this[Keys.token] = s.token
         this[Keys.pairedName] = s.pairedName
         this[Keys.detectionEnabled] = s.detectionEnabled
-        this[Keys.supportedOnly] = s.supportedSitesOnly
+        this[Keys.siteMode] = s.siteMode.name
+        remove(Keys.supportedOnly)
+        this[Keys.allowImages] = s.allowImages
         this[Keys.appFilterMode] = s.appFilterMode.name
         this[Keys.appFilterPackages] = s.appFilterPackages
         this[Keys.allowedHosts] = s.allowedHosts
@@ -103,6 +107,8 @@ class SettingsRepository(context: Context) {
         val pairedName = stringPreferencesKey("paired_name")
         val detectionEnabled = booleanPreferencesKey("detection_enabled")
         val supportedOnly = booleanPreferencesKey("supported_sites_only")
+        val siteMode = stringPreferencesKey("site_mode")
+        val allowImages = booleanPreferencesKey("allow_images")
         val appFilterMode = stringPreferencesKey("app_filter_mode")
         val appFilterPackages = stringSetPreferencesKey("app_filter_packages")
         val allowedHosts = stringSetPreferencesKey("allowed_hosts")

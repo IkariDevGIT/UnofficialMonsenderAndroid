@@ -2,12 +2,16 @@ package io.github.ikaridevgit.unofficialmonsender.data.settings
 
 enum class AppFilterMode { ANY, ONLY_SELECTED, EXCEPT_SELECTED }
 
+/** Which copied links get a prompt before the user's own site rules are applied. */
+enum class SiteMode { SUPPORTED, ALL, NONE }
+
 data class AppSettings(
     val serverUrl: String = "",
     val token: String = "",
     val pairedName: String = "",
     val detectionEnabled: Boolean = true,
-    val supportedSitesOnly: Boolean = true,
+    val siteMode: SiteMode = SiteMode.SUPPORTED,
+    val allowImages: Boolean = true,
     val appFilterMode: AppFilterMode = AppFilterMode.ANY,
     val appFilterPackages: Set<String> = emptySet(),
     val allowedHosts: Set<String> = emptySet(),

@@ -6,6 +6,7 @@ import io.github.ikaridevgit.unofficialmonsender.data.monloader.SiteSupport
 import io.github.ikaridevgit.unofficialmonsender.data.settings.AppFilterMode
 import io.github.ikaridevgit.unofficialmonsender.data.settings.AppSettings
 import io.github.ikaridevgit.unofficialmonsender.data.settings.SettingsRepository
+import io.github.ikaridevgit.unofficialmonsender.data.settings.SiteMode
 
 enum class SkipReason { DETECTION_OFF, NOT_CONFIGURED, APP_FILTERED, SITE_BLOCKED, UNSUPPORTED }
 
@@ -35,8 +36,10 @@ class LinkInspector(
         val loggable = s.keepLog && allowed
         val early = if (explicit) null else ruleSkip(s, host, sourcePackage)
         if (early != null) return LinkCheck(url, host, SiteMatch(SiteSupport.UNKNOWN), early, loggable)
-        val site = monLoader.siteFor(url)
-        val reason = if (explicit) null else siteSkip(s, host, site)
+        val match = monLoader.siteFor(url)
+        val image = Links.isImageUrl(url)
+        val reason = if (explicit) null else siteSkip(s, host, match, image)
+        val site = if (image && match.support != SiteSupport.SUPPORTED) SiteMatch(SiteSupport.IMAGE) else match
         return LinkCheck(url, host, site, reason, loggable)
     }
 
@@ -52,10 +55,14 @@ class LinkInspector(
         return null
     }
 
-    private fun siteSkip(s: AppSettings, host: String, site: SiteMatch): SkipReason? {
+    private fun siteSkip(s: AppSettings, host: String, site: SiteMatch, image: Boolean): SkipReason? {
         if (s.allowedHosts.any { Links.matchesHostRule(host, it) }) return null
-        if (s.supportedSitesOnly && site.support == SiteSupport.UNKNOWN) return SkipReason.UNSUPPORTED
-        return null
+        if (image && s.allowImages) return null
+        return when (s.siteMode) {
+            SiteMode.ALL -> null
+            SiteMode.NONE -> SkipReason.UNSUPPORTED
+            SiteMode.SUPPORTED -> if (site.support == SiteSupport.UNKNOWN) SkipReason.UNSUPPORTED else null
+        }
     }
 
     private fun siteBlocked(s: AppSettings, host: String): Boolean = s.blockedHosts.any { Links.matchesHostRule(host, it) }

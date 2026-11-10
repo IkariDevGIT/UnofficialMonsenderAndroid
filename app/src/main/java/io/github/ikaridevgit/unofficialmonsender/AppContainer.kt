@@ -24,7 +24,7 @@ class AppContainer(context: Context) {
 
     val settings = SettingsRepository(context)
     private val api = MonLoaderApi()
-    private val siteCatalog = SiteCatalog(api)
+    private val siteCatalog = SiteCatalog(api, File(context.filesDir, "sites.json"))
 
     val monLoader = MonLoaderRepository(settings, api, siteCatalog, appScope)
     val pairing = PairingManager(settings, api, appScope)

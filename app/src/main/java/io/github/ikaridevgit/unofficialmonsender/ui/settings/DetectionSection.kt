@@ -32,6 +32,7 @@ import io.github.ikaridevgit.unofficialmonsender.R
 import io.github.ikaridevgit.unofficialmonsender.data.settings.AppFilterMode
 import io.github.ikaridevgit.unofficialmonsender.data.settings.AppSettings
 import io.github.ikaridevgit.unofficialmonsender.ui.components.ButtonRow
+import io.github.ikaridevgit.unofficialmonsender.ui.filters.siteModeLabel
 import io.github.ikaridevgit.unofficialmonsender.ui.components.GroupDivider
 import io.github.ikaridevgit.unofficialmonsender.ui.components.MonButton
 import io.github.ikaridevgit.unofficialmonsender.ui.components.MonChoiceRow
@@ -109,13 +110,6 @@ fun DetectionSection(
             onCheckedChange = { on -> onUpdate { it.copy(detectionEnabled = on) } },
         )
         GroupDivider()
-        SwitchRow(
-            title = stringResource(R.string.setting_supported_only),
-            subtitle = stringResource(R.string.setting_supported_only_detail),
-            checked = settings.supportedSitesOnly,
-            onCheckedChange = { on -> onUpdate { it.copy(supportedSitesOnly = on) } },
-        )
-        GroupDivider()
         NavigationRow(
             title = stringResource(R.string.apps_title),
             subtitle = appFilterSummary(settings),
@@ -184,11 +178,8 @@ private fun appFilterSummary(settings: AppSettings): String {
 private fun siteRulesSummary(settings: AppSettings): String {
     val allowed = settings.allowedHosts.size
     val blocked = settings.blockedHosts.size
-    return if (allowed == 0 && blocked == 0) {
-        stringResource(R.string.sites_summary_none)
-    } else {
-        stringResource(R.string.sites_summary, allowed, blocked)
-    }
+    val mode = stringResource(siteModeLabel(settings.siteMode))
+    return if (allowed == 0 && blocked == 0) mode else mode + " · " + stringResource(R.string.sites_summary, allowed, blocked)
 }
 
 @Composable
