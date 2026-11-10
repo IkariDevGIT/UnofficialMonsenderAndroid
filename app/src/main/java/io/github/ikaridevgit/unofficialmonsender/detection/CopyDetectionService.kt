@@ -34,7 +34,7 @@ class CopyDetectionService : AccessibilityService() {
 
     private var pending: Job? = null
     private var foregroundPackage: String? = null
-    private var lastClip: ClipSnapshot? = null
+    private var lastClip: String? = null
     private var lastProbeAt = 0L
     private var keyboards: Set<String> = emptySet()
     private val launchable = HashMap<String, Boolean>()
@@ -107,8 +107,10 @@ class CopyDetectionService : AccessibilityService() {
         val log = container.detectionLog
         val clip = probe.read()
         lastProbeAt = SystemClock.elapsedRealtime()
-        if (clip == null || clip == lastClip) return
-        lastClip = clip
+        if (clip == null) return
+        val fingerprint = clip.fingerprint()
+        if (fingerprint == lastClip) return
+        lastClip = fingerprint
 
         if (container.linkSender.isOwnCopy(clip.text)) return
         val url = Links.firstLink(clip.text) ?: return

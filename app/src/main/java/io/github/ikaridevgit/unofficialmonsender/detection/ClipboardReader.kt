@@ -2,8 +2,15 @@ package io.github.ikaridevgit.unofficialmonsender.detection
 
 import android.content.ClipboardManager
 import android.content.Context
+import java.security.MessageDigest
 
-data class ClipSnapshot(val text: String, val timestamp: Long)
+data class ClipSnapshot(val text: String, val timestamp: Long) {
+    /** Tells clips apart without keeping their text; it can't be turned back into the clip. */
+    fun fingerprint(): String {
+        val digest = MessageDigest.getInstance("SHA-256").digest("$timestamp\n$text".toByteArray())
+        return digest.joinToString("") { "%02x".format(it) }
+    }
+}
 
 object ClipboardReader {
     private const val EXTRA_IS_SENSITIVE = "android.content.extra.IS_SENSITIVE"
