@@ -220,10 +220,8 @@
 
     <string name="recent_empty">Nothing here yet. (－ω－) zzZ</string>
     <string name="recent_empty_detail">Links you send show up here, with what happened to them. The last 20 are kept.</string>
-    <string name="status_waiting">Waiting for swipe</string>
     <string name="status_sending">Sending…</string>
     <string name="status_failed">Couldn\'t send</string>
-    <string name="status_dismissed">Dismissed</string>
     <string name="status_queued">Queued in MonLoader</string>
     <string name="status_running">Downloading</string>
     <string name="status_succeeded">Done</string>
@@ -248,7 +246,6 @@
         <item quantity="one">%d failed</item>
         <item quantity="other">%d failed</item>
     </plurals>
-    <string name="outcome_not_configured">MonLoader isn\'t set up</string>
 
     <string name="overlay_pane_title">Send link to MonLoader</string>
     <string name="overlay_action_send">Send</string>

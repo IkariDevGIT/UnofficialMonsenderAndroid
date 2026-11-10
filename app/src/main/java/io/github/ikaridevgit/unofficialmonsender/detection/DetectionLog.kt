@@ -42,6 +42,7 @@ sealed interface Delivery {
     @Serializable
     data class Failed(val reason: SendFailure, val detail: String?) : Delivery
 
+    /** No longer recorded; only exists so older log files still load. Such entries are dropped. */
     @Serializable
     data object Dismissed : Delivery
 

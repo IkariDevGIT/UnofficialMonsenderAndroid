@@ -56,7 +56,6 @@ import io.github.ikaridevgit.unofficialmonsender.data.monloader.JobSnapshot
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.JobStatus
 import io.github.ikaridevgit.unofficialmonsender.detection.Delivery
 import io.github.ikaridevgit.unofficialmonsender.detection.DetectionEntry
-import io.github.ikaridevgit.unofficialmonsender.detection.DetectionOutcome
 import io.github.ikaridevgit.unofficialmonsender.overlay.sendFailureMessage
 import io.github.ikaridevgit.unofficialmonsender.ui.components.ButtonRow
 import io.github.ikaridevgit.unofficialmonsender.ui.components.GroupDivider
@@ -342,16 +341,14 @@ private fun statusColor(entry: DetectionEntry): Color {
             JobStatus.CANCELED, JobStatus.REMOVED -> colors.onSurfaceVariant
         }
         is Delivery.Failed -> colors.error
-        Delivery.Waiting, Delivery.Sending -> colors.primary
-        Delivery.Dismissed, null -> colors.onSurfaceVariant
+        Delivery.Waiting, Delivery.Sending, Delivery.Dismissed, null -> colors.primary
     }
 }
 
 @Composable
 private fun statusText(entry: DetectionEntry): String = stringResource(
     when (val delivery = entry.delivery) {
-        Delivery.Waiting -> R.string.status_waiting
-        Delivery.Sending -> R.string.status_sending
+        Delivery.Waiting, Delivery.Sending, Delivery.Dismissed, null -> R.string.status_sending
         is Delivery.Queued -> when (delivery.job?.status) {
             null, JobStatus.QUEUED -> R.string.status_queued
             JobStatus.RUNNING -> R.string.status_running
@@ -363,11 +360,6 @@ private fun statusText(entry: DetectionEntry): String = stringResource(
             JobStatus.REMOVED -> R.string.status_removed
         }
         is Delivery.Failed -> R.string.status_failed
-        Delivery.Dismissed -> R.string.status_dismissed
-        null -> when (entry.outcome) {
-            DetectionOutcome.SHOWN -> R.string.status_waiting
-            DetectionOutcome.NOT_CONFIGURED -> R.string.outcome_not_configured
-        }
     },
 )
 
