@@ -17,10 +17,15 @@ This project is not affiliated with monbooru and is not made or maintained by th
 
 <table align="center">
   <tr>
-    <td align="center"><img src=".github/assets/send-prompt.png" width="180" alt=""><br><sub><b>Send prompt</b><br>Copy a link, swipe up</sub></td>
-    <td align="center"><img src=".github/assets/detections.png" width="180" alt=""><br><sub><b>Detections</b><br>Live MonLoader job status</sub></td>
-    <td align="center"><img src=".github/assets/sent.png" width="180" alt=""><br><sub><b>Sent</b><br>Queued in MonLoader</sub></td>
-    <td align="center"><img src=".github/assets/settings.png" width="180" alt=""><br><sub><b>Settings</b><br>Server, pairing, filters</sub></td>
+    <td align="center"><img src=".github/assets/send-prompt.png" width="160" alt=""><br><sub><b>Send prompt</b><br>Copy a link, swipe up</sub></td>
+    <td align="center"><img src=".github/assets/sent.png" width="160" alt=""><br><sub><b>Sent</b><br>Queued in MonLoader</sub></td>
+    <td align="center"><img src=".github/assets/paused-swipe.png" width="160" alt=""><br><sub><b>Quick pause</b><br>Swipe down for 30 min</sub></td>
+    <td align="center"><img src=".github/assets/detections.png" width="160" alt=""><br><sub><b>Detections</b><br>Live MonLoader job status</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src=".github/assets/paused.png" width="160" alt=""><br><sub><b>Paused</b><br>Time left at a glance</sub></td>
+    <td align="center"><img src=".github/assets/settings.png" width="160" alt=""><br><sub><b>Settings</b><br>Server, pairing, detection</sub></td>
+    <td align="center"><img src=".github/assets/settings-more.png" width="160" alt=""><br><sub><b>More settings</b><br>Overlay, privacy, build info</sub></td>
   </tr>
 </table>
 
