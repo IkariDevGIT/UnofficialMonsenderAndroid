@@ -33,6 +33,8 @@ Meet **Kitty**, who keeps you company while you collect. She blinks, scratches, 
 
 Requires Android 8.0 or newer.
 
+To get updates automatically, add `https://github.com/IkariDevGIT/UnofficialMonsenderAndroid` to [Obtainium](https://github.com/ImranR98/Obtainium).
+
 ## Setup
 
 1. **Server:** enter your MonLoader address, e.g. `http://192.168.1.20:8456`.
