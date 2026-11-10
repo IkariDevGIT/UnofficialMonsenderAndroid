@@ -75,6 +75,8 @@ data class DetectionEntry(
  */
 class DetectionLog(private val file: File, scope: CoroutineScope) {
     @Volatile private var enabled = true
+    private val fileLock = Any()
+    private val temp = File(file.parentFile, file.name + ".tmp")
 
     private val _entries = MutableStateFlow(load())
     val entries: StateFlow<List<DetectionEntry>> = _entries
@@ -86,7 +88,7 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
         scope.launch(Dispatchers.IO) {
             entries.drop(1).collectLatest {
                 delay(SAVE_DELAY_MS)
-                save(it)
+                persist()
             }
         }
     }
@@ -112,8 +114,11 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
     }
 
     fun clear() {
-        _entries.value = emptyList()
-        file.delete()
+        synchronized(fileLock) {
+            _entries.value = emptyList()
+            file.delete()
+            temp.delete()
+        }
     }
 
     fun setDelivery(id: Long, delivery: Delivery) = edit(id) { it.copy(delivery = delivery) }
@@ -146,6 +151,7 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
      * memory, and a file that can't be read is deleted rather than left behind.
      */
     private fun load(): List<DetectionEntry> {
+        temp.delete()
         if (!file.exists()) return emptyList()
         val stored = runCatching { json.decodeFromString(serializer, file.readText()) }.getOrElse {
             file.delete()
@@ -154,16 +160,29 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
         val cleaned = stored
             .filter { it.isSettled }
             .map { if (it.outcome == DetectionOutcome.NOT_CONFIGURED) it.copy(url = null) else it }
-        if (cleaned != stored) save(cleaned)
+        if (cleaned != stored) write(cleaned)
         return cleaned
     }
 
-    private fun save(list: List<DetectionEntry>) {
-        if (!enabled) return
+    /**
+     * Writes the log as it is now, not as it was when the save was scheduled, so a save that runs
+     * after [clear] can't bring cleared entries back.
+     */
+    private fun persist() {
+        synchronized(fileLock) {
+            if (!enabled) return
+            write(_entries.value.filter { it.delivery != Delivery.Waiting })
+        }
+    }
+
+    private fun write(list: List<DetectionEntry>) {
         runCatching {
-            val temp = File(file.parentFile, file.name + ".tmp")
-            temp.writeText(json.encodeToString(serializer, list))
-            temp.renameTo(file)
+            if (list.isEmpty()) {
+                file.delete()
+            } else {
+                temp.writeText(json.encodeToString(serializer, list))
+                if (!temp.renameTo(file)) temp.delete()
+            }
         }
     }
 
