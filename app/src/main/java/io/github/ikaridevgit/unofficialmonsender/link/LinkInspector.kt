@@ -50,6 +50,9 @@ class LinkInspector(
 
     private fun siteBlocked(s: AppSettings, host: String): Boolean = s.blockedHosts.any { Links.matchesHostRule(host, it) }
 
+    /** Whether copies in [pkg] may be looked at at all; checked before the clipboard is read. */
+    fun watches(s: AppSettings, pkg: String?): Boolean = pkg == null || appAllowed(s, pkg)
+
     private fun appAllowed(s: AppSettings, pkg: String): Boolean = when (s.appFilterMode) {
         AppFilterMode.ANY -> true
         AppFilterMode.ONLY_SELECTED -> pkg in s.appFilterPackages

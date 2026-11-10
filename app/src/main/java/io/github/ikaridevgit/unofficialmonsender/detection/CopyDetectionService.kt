@@ -102,6 +102,7 @@ class CopyDetectionService : AccessibilityService() {
         val container = appContainer
         val settings = container.settings.current()
         if (!settings.detectionEnabled || settings.activePause() != null || paused || overlay.isShowing) return
+        if (!container.linkInspector.watches(settings, source)) return
 
         val log = container.detectionLog
         val clip = probe.read()
