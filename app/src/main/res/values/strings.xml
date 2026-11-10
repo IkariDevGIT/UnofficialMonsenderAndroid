@@ -203,7 +203,14 @@
     <string name="sites_never_empty">No sites added</string>
     <string name="sites_input_hint">example.com</string>
     <string name="sites_input_invalid">Enter a domain such as example.com</string>
-    <string name="sites_summary">%1$d watched · %2$d ignored</string>
+    <plurals name="sites_summary_watched">
+        <item quantity="one">%d watched</item>
+        <item quantity="other">%d watched</item>
+    </plurals>
+    <plurals name="sites_summary_ignored">
+        <item quantity="one">%d ignored</item>
+        <item quantity="other">%d ignored</item>
+    </plurals>
 
     <string name="setting_auto_dismiss">Close automatically</string>
     <string name="setting_auto_dismiss_detail">Hide the overlay if you don\'t interact with it</string>

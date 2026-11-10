@@ -179,7 +179,10 @@ private fun siteRulesSummary(settings: AppSettings): String {
     val allowed = settings.allowedHosts.size
     val blocked = settings.blockedHosts.size
     val mode = stringResource(siteModeLabel(settings.siteMode))
-    return if (allowed == 0 && blocked == 0) mode else mode + " · " + stringResource(R.string.sites_summary, allowed, blocked)
+    if (allowed == 0 && blocked == 0) return mode
+    val watched = pluralStringResource(R.plurals.sites_summary_watched, allowed, allowed)
+    val ignored = pluralStringResource(R.plurals.sites_summary_ignored, blocked, blocked)
+    return "$mode · $watched · $ignored"
 }
 
 @Composable
