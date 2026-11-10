@@ -83,11 +83,11 @@ class SiteCatalog(private val api: MonLoaderApi, private val file: File) {
     }.getOrNull()
 
     private fun save(stored: Stored) {
+        val temp = File(file.parentFile, file.name + ".tmp")
         runCatching {
-            val temp = File(file.parentFile, file.name + ".tmp")
             temp.writeText(json.encodeToString(Stored.serializer(), stored))
-            temp.renameTo(file)
-        }
+            if (!temp.renameTo(file)) temp.delete()
+        }.onFailure { temp.delete() }
     }
 
     private fun Site.covers(host: String): Boolean {

@@ -376,4 +376,4 @@ private fun kaomoji(entry: DetectionEntry): Int? = when (val delivery = entry.de
     else -> null
 }
 
-private val JOB_ERRORS =setOf(JobStatus.FAILED, JobStatus.INTERRUPTED, JobStatus.PARTIAL)
+private val JOB_ERRORS = setOf(JobStatus.FAILED, JobStatus.INTERRUPTED, JobStatus.PARTIAL)

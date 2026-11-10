@@ -17,9 +17,7 @@ data class LinkCheck(
     val skipReason: SkipReason?,
     /** Whether the link may be written to the log: logging is on and both its app and its site are allowed. */
     val loggable: Boolean,
-) {
-    val shouldShow: Boolean get() = skipReason == null
-}
+)
 
 class LinkInspector(
     private val settings: SettingsRepository,
