@@ -103,13 +103,6 @@ fun DetectionSection(
             }
         }
         GroupDivider()
-        SwitchRow(
-            title = stringResource(R.string.setting_show_overlay),
-            subtitle = stringResource(R.string.setting_show_overlay_detail),
-            checked = settings.detectionEnabled,
-            onCheckedChange = { on -> onUpdate { it.copy(detectionEnabled = on) } },
-        )
-        GroupDivider()
         NavigationRow(
             title = stringResource(R.string.apps_title),
             subtitle = appFilterSummary(settings),

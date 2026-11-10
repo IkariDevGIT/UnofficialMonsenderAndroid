@@ -50,17 +50,7 @@ class CopyDetectionService : AccessibilityService() {
         listenedEvents = serviceInfo?.eventTypes ?: 0
         _running.value = true
         scope.launch {
-            appContainer.settings.settings
-                .map { it.detectionEnabled to it.pause }
-                .distinctUntilChanged()
-                .collectLatest { (enabled, pause) ->
-                    if (enabled) {
-                        followPause(pause)
-                    } else {
-                        listen(false)
-                        awaitCancellation()
-                    }
-                }
+            appContainer.settings.settings.map { it.pause }.distinctUntilChanged().collectLatest(::followPause)
         }
     }
 
@@ -111,7 +101,7 @@ class CopyDetectionService : AccessibilityService() {
     private suspend fun handleCopy(source: String?) {
         val container = appContainer
         val settings = container.settings.current()
-        if (!settings.detectionEnabled || settings.activePause() != null || paused || overlay.isShowing) return
+        if (settings.activePause() != null || paused || overlay.isShowing) return
         if (!container.linkInspector.watches(settings, source)) return
 
         val log = container.detectionLog

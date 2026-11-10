@@ -8,7 +8,7 @@ import io.github.ikaridevgit.unofficialmonsender.data.settings.AppSettings
 import io.github.ikaridevgit.unofficialmonsender.data.settings.SettingsRepository
 import io.github.ikaridevgit.unofficialmonsender.data.settings.SiteMode
 
-enum class SkipReason { DETECTION_OFF, NOT_CONFIGURED, APP_FILTERED, SITE_BLOCKED, UNSUPPORTED }
+enum class SkipReason { NOT_CONFIGURED, APP_FILTERED, SITE_BLOCKED, UNSUPPORTED }
 
 data class LinkCheck(
     val url: String,
@@ -48,7 +48,6 @@ class LinkInspector(
      * and MonLoader isn't asked about its sites for a copy that is skipped anyway.
      */
     private fun ruleSkip(s: AppSettings, host: String, sourcePackage: String?): SkipReason? {
-        if (!s.detectionEnabled) return SkipReason.DETECTION_OFF
         if (sourcePackage != null && !appAllowed(s, sourcePackage)) return SkipReason.APP_FILTERED
         if (siteBlocked(s, host)) return SkipReason.SITE_BLOCKED
         if (!s.isConfigured) return SkipReason.NOT_CONFIGURED

@@ -44,7 +44,6 @@ class SettingsRepository(context: Context) {
         serverUrl = this[Keys.serverUrl].orEmpty(),
         token = this[Keys.token].orEmpty(),
         pairedName = this[Keys.pairedName].orEmpty(),
-        detectionEnabled = this[Keys.detectionEnabled] ?: true,
         siteMode = this[Keys.siteMode]?.let { name -> SiteMode.entries.firstOrNull { it.name == name } }
             ?: if (this[Keys.supportedOnly] == false) SiteMode.ALL else SiteMode.SUPPORTED,
         allowImages = this[Keys.allowImages] ?: true,
@@ -61,7 +60,9 @@ class SettingsRepository(context: Context) {
         pause = readPause(),
     )
 
+    /** The old "Prompt for copied links" switch, when off, carries over as a pause until resumed. */
     private fun Preferences.readPause(): Pause? {
+        if (this[Keys.pauseStarted] == null && this[Keys.detectionEnabled] == false) return Pause.indefinite(0L)
         val started = this[Keys.pauseStarted] ?: return null
         val until = this[Keys.pauseUntil] ?: return null
         val unit = this[Keys.pauseUnit]?.let { name -> PauseUnit.entries.firstOrNull { it.name == name } }
@@ -86,7 +87,7 @@ class SettingsRepository(context: Context) {
         this[Keys.serverUrl] = s.serverUrl
         this[Keys.token] = s.token
         this[Keys.pairedName] = s.pairedName
-        this[Keys.detectionEnabled] = s.detectionEnabled
+        remove(Keys.detectionEnabled)
         this[Keys.siteMode] = s.siteMode.name
         remove(Keys.supportedOnly)
         this[Keys.allowImages] = s.allowImages

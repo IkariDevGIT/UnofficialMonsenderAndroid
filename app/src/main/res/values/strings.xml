@@ -107,8 +107,6 @@
     <string name="detection_restricted_hint">If Android says the setting is restricted, open App info, tap ⋮ and choose \"Allow restricted settings\", then try again.</string>
     <string name="detection_battery_hint">Detection keeps turning itself off?</string>
     <string name="detection_battery_link">See troubleshooting</string>
-    <string name="setting_show_overlay">Prompt for copied links</string>
-    <string name="setting_show_overlay_detail">Show the send overlay when you copy a link</string>
     <string name="setting_site_mode">Sites that get a prompt</string>
     <string name="setting_site_mode_detail">The \"Always prompt\" and \"Never prompt\" lists below come first</string>
     <string name="site_mode_supported">All sites MonLoader supports</string>

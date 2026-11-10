@@ -9,7 +9,6 @@ data class AppSettings(
     val serverUrl: String = "",
     val token: String = "",
     val pairedName: String = "",
-    val detectionEnabled: Boolean = true,
     val siteMode: SiteMode = SiteMode.SUPPORTED,
     val allowImages: Boolean = true,
     val appFilterMode: AppFilterMode = AppFilterMode.ANY,
