@@ -8,9 +8,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -67,15 +69,17 @@ data class DetectionEntry(
 )
 
 /**
- * The latest links and, for prompted ones, whether they were sent. Kept in [file] so the list
- * survives restarts; a prompt still open when the app stopped counts as dismissed. Only links
- * are ever stored, and only ones the caller has cleared for logging.
+ * The links that were sent or failed. Kept in [file] so the list survives restarts. A link whose
+ * prompt is still open is held only in memory and hidden, and is dropped if the prompt is closed
+ * without sending. Only links are ever stored, and only ones the caller has cleared for logging.
  */
 class DetectionLog(private val file: File, scope: CoroutineScope) {
     @Volatile private var enabled = true
 
     private val _entries = MutableStateFlow(load())
-    val entries: StateFlow<List<DetectionEntry>> = _entries.asStateFlow()
+    val entries: StateFlow<List<DetectionEntry>> = _entries
+        .map { list -> list.filter { it.delivery != Delivery.Waiting } }
+        .stateIn(scope, SharingStarted.Eagerly, _entries.value)
     private val ids = AtomicLong(_entries.value.maxOfOrNull { it.id } ?: 0L)
 
     init {
@@ -88,10 +92,15 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
     }
 
     /** Null when logging is off; the link is then sent without leaving a trace. */
-    fun add(sourcePackage: String?, url: String, outcome: DetectionOutcome, origin: LinkOrigin = LinkOrigin.COPY): Long? {
+    fun add(sourcePackage: String?, url: String, origin: LinkOrigin = LinkOrigin.COPY): Long? =
+        put(DetectionEntry(ids.incrementAndGet(), System.currentTimeMillis(), sourcePackage, url, DetectionOutcome.SHOWN, Delivery.Waiting, origin))
+
+    /** Records that a copy couldn't be sent because MonLoader isn't set up, without the link itself. */
+    fun notConfigured(sourcePackage: String?): Long? =
+        put(DetectionEntry(ids.incrementAndGet(), System.currentTimeMillis(), sourcePackage, null, DetectionOutcome.NOT_CONFIGURED))
+
+    private fun put(entry: DetectionEntry): Long? {
         if (!enabled) return null
-        val delivery = if (outcome == DetectionOutcome.SHOWN) Delivery.Waiting else null
-        val entry = DetectionEntry(ids.incrementAndGet(), System.currentTimeMillis(), sourcePackage, url, outcome, delivery, origin)
         _entries.update { (listOf(entry) + it).take(MAX_ENTRIES) }
         return entry.id
     }
@@ -114,9 +123,9 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
         it.copy(delivery = queued.copy(job = job))
     }
 
-    /** Closing a prompt that was never sent, or whose send was cut off, counts as dismissed. */
-    fun promptClosed(id: Long) = edit(id) {
-        if (it.delivery == Delivery.Waiting || it.delivery == Delivery.Sending) it.copy(delivery = Delivery.Dismissed) else it
+    /** Closing a prompt without sending forgets the link. */
+    fun promptClosed(id: Long) {
+        _entries.update { list -> list.filterNot { it.id == id && it.delivery == Delivery.Waiting } }
     }
 
     /** Sent links whose job hadn't finished when the app last stopped. */
@@ -132,9 +141,9 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
 
     private fun load(): List<DetectionEntry> = runCatching {
         if (!file.exists()) return emptyList()
-        json.decodeFromString(serializer, file.readText()).map {
-            if (it.delivery == Delivery.Waiting || it.delivery == Delivery.Sending) it.copy(delivery = Delivery.Dismissed) else it
-        }
+        json.decodeFromString(serializer, file.readText())
+            .filter { it.isSettled }
+            .map { if (it.outcome == DetectionOutcome.NOT_CONFIGURED) it.copy(url = null) else it }
     }.getOrDefault(emptyList())
 
     private fun save(list: List<DetectionEntry>) {
@@ -147,6 +156,8 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
     }
 
     private companion object {
+        val DetectionEntry.isSettled
+            get() = delivery != Delivery.Waiting && delivery != Delivery.Sending && delivery != Delivery.Dismissed
         const val MAX_ENTRIES = 20
         const val SAVE_DELAY_MS = 400L
         val json = Json { ignoreUnknownKeys = true }

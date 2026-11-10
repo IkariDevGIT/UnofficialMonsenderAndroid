@@ -17,7 +17,6 @@ import io.github.ikaridevgit.unofficialmonsender.appContainer
 import io.github.ikaridevgit.unofficialmonsender.data.settings.Pause
 import io.github.ikaridevgit.unofficialmonsender.detection.ClipboardReader
 import io.github.ikaridevgit.unofficialmonsender.detection.CopyDetectionService
-import io.github.ikaridevgit.unofficialmonsender.detection.DetectionOutcome
 import io.github.ikaridevgit.unofficialmonsender.detection.LinkOrigin
 import io.github.ikaridevgit.unofficialmonsender.link.Links
 import io.github.ikaridevgit.unofficialmonsender.ui.theme.MonsenderTheme
@@ -119,7 +118,7 @@ class OverlayActivity : ComponentActivity() {
             options = OverlayOptions.from(settings)
             canPause = CopyDetectionService.running.value && settings.activePause() == null
             val check = container.linkInspector.inspect(url, sourcePackage, explicit = true)
-            entryId = if (check.loggable) container.detectionLog.add(sourcePackage, url, DetectionOutcome.SHOWN, origin) else null
+            entryId = if (check.loggable) container.detectionLog.add(sourcePackage, url, origin) else null
             request = OverlayRequest.from(check, sourceLabel = sourcePackage?.let { appLabel(it) }, origin = origin)
         }
     }

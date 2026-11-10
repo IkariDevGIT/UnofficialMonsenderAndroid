@@ -114,10 +114,10 @@ class CopyDetectionService : AccessibilityService() {
         val check = container.linkInspector.inspect(url, source, explicit = false)
         val skip = check.skipReason
         if (skip != null) {
-            if (skip == SkipReason.NOT_CONFIGURED && check.loggable) log.add(source, url, DetectionOutcome.NOT_CONFIGURED)
+            if (skip == SkipReason.NOT_CONFIGURED && check.loggable) log.notConfigured(source)
             return
         }
-        val id = if (check.loggable) log.add(source, url, DetectionOutcome.SHOWN) else null
+        val id = if (check.loggable) log.add(source, url) else null
         overlay.show(
             request = OverlayRequest.from(check, sourceLabel = source?.let { appLabel(it) }),
             options = OverlayOptions.from(settings),
