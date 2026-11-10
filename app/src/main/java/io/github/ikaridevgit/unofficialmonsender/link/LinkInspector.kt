@@ -31,18 +31,28 @@ class LinkInspector(
     suspend fun inspect(url: String, sourcePackage: String?, explicit: Boolean): LinkCheck {
         val s = settings.current()
         val host = Links.hostOf(url).orEmpty()
-        val site = monLoader.siteFor(url)
-        val reason = if (explicit) null else skipReason(s, host, site, sourcePackage)
         val allowed = (sourcePackage == null || appAllowed(s, sourcePackage)) && !siteBlocked(s, host)
-        return LinkCheck(url, host, site, reason, loggable = s.keepLog && allowed)
+        val loggable = s.keepLog && allowed
+        val early = if (explicit) null else ruleSkip(s, host, sourcePackage)
+        if (early != null) return LinkCheck(url, host, SiteMatch(SiteSupport.UNKNOWN), early, loggable)
+        val site = monLoader.siteFor(url)
+        val reason = if (explicit) null else siteSkip(s, host, site)
+        return LinkCheck(url, host, site, reason, loggable)
     }
 
-    /** App and site rules come first, so nothing from a filtered app or blocked site is ever logged. */
-    private fun skipReason(s: AppSettings, host: String, site: SiteMatch, sourcePackage: String?): SkipReason? {
+    /**
+     * App and site rules come first, so nothing from a filtered app or blocked site is ever logged,
+     * and MonLoader isn't asked about its sites for a copy that is skipped anyway.
+     */
+    private fun ruleSkip(s: AppSettings, host: String, sourcePackage: String?): SkipReason? {
         if (!s.detectionEnabled) return SkipReason.DETECTION_OFF
         if (sourcePackage != null && !appAllowed(s, sourcePackage)) return SkipReason.APP_FILTERED
         if (siteBlocked(s, host)) return SkipReason.SITE_BLOCKED
         if (!s.isConfigured) return SkipReason.NOT_CONFIGURED
+        return null
+    }
+
+    private fun siteSkip(s: AppSettings, host: String, site: SiteMatch): SkipReason? {
         if (s.allowedHosts.any { Links.matchesHostRule(host, it) }) return null
         if (s.supportedSitesOnly && site.support == SiteSupport.UNKNOWN) return SkipReason.UNSUPPORTED
         return null
