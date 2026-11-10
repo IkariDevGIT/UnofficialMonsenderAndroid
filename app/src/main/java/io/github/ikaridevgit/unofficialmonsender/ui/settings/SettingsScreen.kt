@@ -101,6 +101,7 @@ fun SettingsScreen(
                     onOpenApps = onOpenApps,
                     onOpenSites = onOpenSites,
                     onMessage = viewModel::message,
+                    onSetPause = viewModel::setPause,
                 )
             }
             item { SectionHeader(stringResource(R.string.section_overlay)) }

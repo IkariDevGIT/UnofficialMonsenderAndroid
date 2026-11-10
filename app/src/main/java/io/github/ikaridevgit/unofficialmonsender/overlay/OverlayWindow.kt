@@ -22,6 +22,7 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import io.github.ikaridevgit.unofficialmonsender.appContainer
+import io.github.ikaridevgit.unofficialmonsender.data.settings.Pause
 import io.github.ikaridevgit.unofficialmonsender.detection.Delivery
 import io.github.ikaridevgit.unofficialmonsender.ui.theme.MonsenderTheme
 
@@ -61,6 +62,7 @@ class OverlayWindow(private val service: AccessibilityService) {
                             onClosed()
                             if (attached?.root === root) dismiss()
                         },
+                        onPause = { service.appContainer.pauseDetection(Pause.quick()) },
                     )
                 }
             }

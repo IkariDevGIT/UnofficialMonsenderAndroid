@@ -7,7 +7,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import io.github.ikaridevgit.unofficialmonsender.data.settings.Pause
+import io.github.ikaridevgit.unofficialmonsender.ui.pause.PauseDialog
+import io.github.ikaridevgit.unofficialmonsender.ui.pause.pauseStatus
+import io.github.ikaridevgit.unofficialmonsender.ui.pause.rememberNow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -41,8 +49,20 @@ fun DetectionSection(
     onOpenApps: () -> Unit,
     onOpenSites: () -> Unit,
     onMessage: (Int) -> Unit,
+    onSetPause: (Pause?) -> Unit,
 ) {
     val context = LocalContext.current
+    val now = rememberNow()
+    val pause = settings.activePause(now)
+    var pauseDialog by rememberSaveable { mutableStateOf(false) }
+    if (pauseDialog) {
+        PauseDialog(
+            active = pause,
+            onPause = onSetPause,
+            onResume = { onSetPause(null) },
+            onDismiss = { pauseDialog = false },
+        )
+    }
     SettingsGroup {
         SettingsRow(
             title = stringResource(if (serviceRunning) R.string.detection_on else R.string.detection_off),
@@ -64,6 +84,22 @@ fun DetectionSection(
                 TroubleshootingHint()
             }
         }
+        GroupDivider()
+        SettingsRow(
+            title = stringResource(if (pause != null) R.string.paused_title else R.string.pause_row_title),
+            subtitle = if (pause != null) pauseStatus(pause, now) else stringResource(R.string.pause_row_detail),
+            leading = if (pause != null) {
+                { StatusDot(StatusColors.warning) }
+            } else {
+                null
+            },
+            trailing = {
+                MonButton(
+                    text = stringResource(if (pause != null) R.string.action_change else R.string.action_pause),
+                    onClick = { pauseDialog = true },
+                )
+            },
+        )
         GroupDivider()
         SwitchRow(
             title = stringResource(R.string.setting_show_overlay),

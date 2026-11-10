@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -55,7 +56,29 @@ class SettingsRepository(context: Context) {
         haptics = this[Keys.haptics] ?: true,
         welcomeSeen = this[Keys.welcomeSeen] ?: false,
         keepLog = this[Keys.keepLog] ?: true,
+        pause = readPause(),
     )
+
+    private fun Preferences.readPause(): Pause? {
+        val started = this[Keys.pauseStarted] ?: return null
+        val until = this[Keys.pauseUntil] ?: return null
+        val unit = this[Keys.pauseUnit]?.let { name -> PauseUnit.entries.firstOrNull { it.name == name } }
+        return Pause(started, until, this[Keys.pauseAmount] ?: 0, unit)
+    }
+
+    private fun MutablePreferences.writePause(pause: Pause?) {
+        if (pause == null) {
+            remove(Keys.pauseStarted)
+            remove(Keys.pauseUntil)
+            remove(Keys.pauseAmount)
+            remove(Keys.pauseUnit)
+            return
+        }
+        this[Keys.pauseStarted] = pause.startedAt
+        this[Keys.pauseUntil] = pause.until
+        this[Keys.pauseAmount] = pause.amount
+        if (pause.unit != null) this[Keys.pauseUnit] = pause.unit.name else remove(Keys.pauseUnit)
+    }
 
     private fun MutablePreferences.write(s: AppSettings) {
         this[Keys.serverUrl] = s.serverUrl
@@ -71,6 +94,7 @@ class SettingsRepository(context: Context) {
         this[Keys.haptics] = s.haptics
         this[Keys.welcomeSeen] = s.welcomeSeen
         this[Keys.keepLog] = s.keepLog
+        writePause(s.pause)
     }
 
     private object Keys {
@@ -87,5 +111,9 @@ class SettingsRepository(context: Context) {
         val haptics = booleanPreferencesKey("haptics")
         val welcomeSeen = booleanPreferencesKey("welcome_seen")
         val keepLog = booleanPreferencesKey("keep_log")
+        val pauseStarted = longPreferencesKey("pause_started")
+        val pauseUntil = longPreferencesKey("pause_until")
+        val pauseAmount = intPreferencesKey("pause_amount")
+        val pauseUnit = stringPreferencesKey("pause_unit")
     }
 }

@@ -14,7 +14,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import io.github.ikaridevgit.unofficialmonsender.R
 import io.github.ikaridevgit.unofficialmonsender.appContainer
+import io.github.ikaridevgit.unofficialmonsender.data.settings.Pause
 import io.github.ikaridevgit.unofficialmonsender.detection.ClipboardReader
+import io.github.ikaridevgit.unofficialmonsender.detection.CopyDetectionService
 import io.github.ikaridevgit.unofficialmonsender.detection.DetectionOutcome
 import io.github.ikaridevgit.unofficialmonsender.detection.LinkOrigin
 import io.github.ikaridevgit.unofficialmonsender.link.Links
@@ -30,6 +32,7 @@ class OverlayActivity : ComponentActivity() {
     private var request by mutableStateOf<OverlayRequest?>(null)
     private var options by mutableStateOf(OverlayOptions.DEFAULT)
     private var notice by mutableStateOf<Int?>(null)
+    private var canPause by mutableStateOf(false)
     private var awaitingClipboard = false
     private var entryId: Long? = null
 
@@ -50,6 +53,11 @@ class OverlayActivity : ComponentActivity() {
                             onClosed = {
                                 closeEntry()
                                 finish()
+                            },
+                            onPause = if (canPause) {
+                                { appContainer.pauseDetection(Pause.quick()) }
+                            } else {
+                                null
                             },
                         )
                     }
@@ -107,7 +115,9 @@ class OverlayActivity : ComponentActivity() {
         }
         lifecycleScope.launch {
             val container = appContainer
-            options = OverlayOptions.from(container.settings.current())
+            val settings = container.settings.current()
+            options = OverlayOptions.from(settings)
+            canPause = CopyDetectionService.running.value && settings.activePause() == null
             val check = container.linkInspector.inspect(url, sourcePackage, explicit = true)
             entryId = if (check.loggable) container.detectionLog.add(sourcePackage, url, DetectionOutcome.SHOWN, origin) else null
             request = OverlayRequest.from(check, sourceLabel = sourcePackage?.let { appLabel(it) }, origin = origin)

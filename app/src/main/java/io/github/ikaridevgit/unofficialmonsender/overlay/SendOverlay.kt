@@ -97,6 +97,8 @@ import io.github.ikaridevgit.unofficialmonsender.R
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.SendFailure
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.SendResult
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.SiteSupport
+import io.github.ikaridevgit.unofficialmonsender.data.settings.Pause
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.zIndex
 import io.github.ikaridevgit.unofficialmonsender.ui.components.CompanionKitty
 import io.github.ikaridevgit.unofficialmonsender.ui.components.MonButton
@@ -110,10 +112,12 @@ import kotlin.math.min
 
 private const val SCRIM_ALPHA = 0.78f
 private const val DOWNWARD_RESISTANCE = 0.25f
+private const val PAUSE_RESISTANCE = 0.6f
 
 /**
  * Full-screen send prompt: the link sits in the upper half, swiping it up sends it to MonLoader,
- * and tapping the lower half dismisses. Hosted by both the accessibility overlay and [OverlayActivity].
+ * swiping it down pauses copy detection for a while when [onPause] is given, and tapping the lower
+ * half dismisses. Hosted by both the accessibility overlay and [OverlayActivity].
  */
 @Composable
 fun SendOverlay(
@@ -121,6 +125,7 @@ fun SendOverlay(
     options: OverlayOptions,
     send: suspend () -> SendResult,
     onClosed: () -> Unit,
+    onPause: (() -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
@@ -134,12 +139,14 @@ fun SendOverlay(
     var phase by remember { mutableStateOf<OverlayPhase>(OverlayPhase.Ready) }
     var dragging by remember { mutableStateOf(false) }
     var armed by remember { mutableStateOf(false) }
+    var pauseArmed by remember { mutableStateOf(false) }
     var closing by remember { mutableStateOf(false) }
     var rawDrag by remember { mutableFloatStateOf(0f) }
     var remaining by remember { mutableFloatStateOf(1f) }
     val reveal = remember { Animatable(0f) }
     val offsetY = remember { Animatable(0f) }
     val glow = remember { Animatable(0f) }
+    val pauseGlow = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) { reveal.animateTo(1f, tween(280, easing = LinearOutSlowInEasing)) }
 
@@ -168,10 +175,29 @@ fun SendOverlay(
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val heightPx = constraints.maxHeight.toFloat().coerceAtLeast(1f)
         val badgeTop = maxHeight * 0.22f
+        val pauseBadgeBottom = maxHeight * 0.2f
         val thresholdPx = min(heightPx * 0.2f, with(density) { 180.dp.toPx() })
+        val pauseThresholdPx = min(heightPx * 0.14f, with(density) { 120.dp.toPx() })
         val flingPx = with(density) { 1200.dp.toPx() }
         val minFlingDistancePx = with(density) { 32.dp.toPx() }
         val canSwipe = phase == OverlayPhase.Ready || phase is OverlayPhase.Failed
+
+        fun startPause() {
+            val pause = onPause ?: return
+            if (!canSwipeNow(phase, closing)) return
+            haptics.confirm()
+            phase = OverlayPhase.Paused
+            pause()
+            scope.launch { offsetY.animateTo(heightPx, tween(360, easing = FastOutLinearInEasing)) }
+            scope.launch {
+                pauseGlow.animateTo(1f, tween(160))
+                pauseGlow.animateTo(0f, tween(1100))
+            }
+            scope.launch {
+                delay(1400)
+                close()
+            }
+        }
 
         fun startSend() {
             if (!canSwipeNow(phase, closing)) return
@@ -206,23 +232,37 @@ fun SendOverlay(
 
         fun onDrag(dy: Float) {
             rawDrag += dy
-            val shown = if (rawDrag < 0f) rawDrag else rawDrag * DOWNWARD_RESISTANCE
+            val shown = when {
+                rawDrag < 0f -> rawDrag
+                onPause != null -> rawDrag * PAUSE_RESISTANCE
+                else -> rawDrag * DOWNWARD_RESISTANCE
+            }
             scope.launch { offsetY.snapTo(shown) }
             val nowArmed = shown < -thresholdPx
             if (nowArmed != armed) {
                 armed = nowArmed
                 if (nowArmed) haptics.threshold()
             }
+            val nowPauseArmed = onPause != null && shown > pauseThresholdPx
+            if (nowPauseArmed != pauseArmed) {
+                pauseArmed = nowPauseArmed
+                if (nowPauseArmed) haptics.threshold()
+            }
         }
 
         fun onDragEnd(velocityY: Float) {
             dragging = false
             val fling = velocityY < -flingPx && offsetY.value < -minFlingDistancePx
+            val pauseFling = onPause != null && velocityY > flingPx && offsetY.value > minFlingDistancePx
             val shouldSend = armed || fling
+            val shouldPause = !shouldSend && (pauseArmed || pauseFling)
             armed = false
+            pauseArmed = false
             rawDrag = 0f
             if (shouldSend) {
                 startSend()
+            } else if (shouldPause) {
+                startPause()
             } else {
                 scope.launch {
                     offsetY.animateTo(0f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMediumLow))
@@ -232,13 +272,11 @@ fun SendOverlay(
 
         val sendLabel = stringResource(R.string.overlay_action_send)
         val dismissLabel = stringResource(R.string.overlay_action_dismiss)
+        val pauseLabel = stringResource(R.string.overlay_action_pause, Pause.QUICK_MINUTES)
         val paneLabel = stringResource(R.string.overlay_pane_title)
         val primary = MaterialTheme.colorScheme.primary
-        val dragProgress = if (phase == OverlayPhase.Ready || phase is OverlayPhase.Failed) {
-            (-offsetY.value / thresholdPx).coerceIn(0f, 1f)
-        } else {
-            0f
-        }
+        val dragProgress = if (canSwipe) (-offsetY.value / thresholdPx).coerceIn(0f, 1f) else 0f
+        val pauseProgress = if (canSwipe && onPause != null) (offsetY.value / pauseThresholdPx).coerceIn(0f, 1f) else 0f
 
         Box(
             Modifier
@@ -287,10 +325,20 @@ fun SendOverlay(
                     .background(Color.Black.copy(alpha = SCRIM_ALPHA)),
             )
 
-            TopGlow(
+            EdgeGlow(
                 color = primary,
                 intensity = { (glow.value + dragProgress * 0.35f) * reveal.value },
+                top = true,
+                modifier = Modifier.align(Alignment.TopCenter),
             )
+            if (onPause != null) {
+                EdgeGlow(
+                    color = StatusColors.warning,
+                    intensity = { (pauseGlow.value + pauseProgress * 0.35f) * reveal.value },
+                    top = false,
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+            }
 
             Column(
                 modifier = Modifier
@@ -299,7 +347,7 @@ fun SendOverlay(
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
                     .padding(horizontal = 24.dp)
                     .graphicsLayer {
-                        val flight = (-offsetY.value / heightPx).coerceIn(0f, 1f)
+                        val flight = (abs(offsetY.value) / heightPx).coerceIn(0f, 1f)
                         translationY = offsetY.value - (1f - reveal.value) * 32.dp.toPx()
                         alpha = reveal.value * (1f - flight * 1.6f).coerceIn(0f, 1f)
                         val scale = 1f - flight * 0.12f
@@ -326,9 +374,10 @@ fun SendOverlay(
                 LinkCard(
                     request = request,
                     modifier = Modifier.semantics(mergeDescendants = true) {
-                        customActions = listOf(
+                        customActions = listOfNotNull(
                             CustomAccessibilityAction(sendLabel) { startSend(); true },
                             CustomAccessibilityAction(dismissLabel) { close(); true },
+                            onPause?.let { CustomAccessibilityAction(pauseLabel) { startPause(); true } },
                         )
                     },
                 )
@@ -354,6 +403,20 @@ fun SendOverlay(
                     exit = fadeOut(tween(160)),
                 ) {
                     SendBadge(sent = phase == OverlayPhase.Sent, spinner = primary)
+                }
+            }
+
+            Box(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = pauseBadgeBottom),
+            ) {
+                AnimatedVisibility(
+                    visible = phase == OverlayPhase.Paused,
+                    enter = fadeIn(tween(160)) + scaleIn(tween(220), initialScale = 0.7f),
+                    exit = fadeOut(tween(160)),
+                ) {
+                    PauseBadge(stringResource(R.string.overlay_paused, Pause.QUICK_MINUTES))
                 }
             }
 
@@ -385,15 +448,20 @@ fun SendOverlay(
                     .align(Alignment.BottomCenter)
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))
                     .padding(bottom = 36.dp, start = 24.dp, end = 24.dp)
-                    .graphicsLayer { alpha = reveal.value },
+                    .graphicsLayer { alpha = reveal.value * if (phase == OverlayPhase.Paused) 0f else 1f },
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 if (touchExploration && canSwipe) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         MonButton(dismissLabel, onClick = ::close)
+                        if (onPause != null) MonButton(pauseLabel, onClick = ::startPause)
                         MonButton(sendLabel, onClick = ::startSend, accent = true)
                     }
                     Spacer(Modifier.height(20.dp))
+                }
+                if (onPause != null) {
+                    PauseHint(armed = pauseArmed, progress = { pauseProgress })
+                    Spacer(Modifier.height(18.dp))
                 }
                 Text(
                     text = stringResource(R.string.overlay_tap_to_dismiss),
@@ -532,27 +600,141 @@ private fun SwipeArrow(color: Color, progress: () -> Float, bouncing: Boolean) {
     }
 }
 
+/** Light spilling in from the top edge for sending, or from the bottom edge for pausing. */
 @Composable
-private fun TopGlow(color: Color, intensity: () -> Float) {
+private fun EdgeGlow(color: Color, intensity: () -> Float, top: Boolean, modifier: Modifier = Modifier) {
     Canvas(
-        Modifier
+        modifier
             .fillMaxWidth()
             .height(360.dp),
     ) {
         val i = intensity().coerceIn(0f, 1f)
         if (i <= 0.001f) return@Canvas
+        val edge = if (top) 0f else size.height
         drawRect(
             brush = Brush.radialGradient(
                 0f to color.copy(alpha = 0.6f * i),
                 0.45f to color.copy(alpha = 0.22f * i),
                 1f to Color.Transparent,
-                center = Offset(size.width / 2f, 0f),
+                center = Offset(size.width / 2f, edge),
                 radius = min(size.width * 0.85f, size.height),
             ),
         )
+        val line = 3.dp.toPx()
         drawRect(
             brush = Brush.horizontalGradient(listOf(Color.Transparent, color.copy(alpha = i), Color.Transparent)),
-            size = Size(size.width, 3.dp.toPx()),
+            topLeft = Offset(0f, if (top) 0f else size.height - line),
+            size = Size(size.width, line),
+        )
+    }
+}
+
+/** The pause sign and "swipe down" line; both warm up and sink a little as the card is pulled down. */
+@Composable
+private fun PauseHint(armed: Boolean, progress: () -> Float) {
+    val idle = Color.White.copy(alpha = 0.55f)
+    val transition = rememberInfiniteTransition(label = "pauseHint")
+    val nudge by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 2400
+                0f at 0
+                0f at 1200 using FastOutSlowInEasing
+                1f at 1520 using FastOutSlowInEasing
+                0f at 1900
+                0f at 2400
+            },
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "nudge",
+    )
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.graphicsLayer {
+            val p = progress()
+            translationY = p * 10.dp.toPx() + (1f - p) * nudge * 4.dp.toPx()
+            val scale = 1f + p * 0.08f
+            scaleX = scale
+            scaleY = scale
+        },
+    ) {
+        Canvas(Modifier.size(14.dp)) {
+            val color = lerp(idle, StatusColors.warning, progress())
+            val bar = size.width * 0.3f
+            drawRect(color, topLeft = Offset(size.width * 0.1f, 0f), size = Size(bar, size.height))
+            drawRect(color, topLeft = Offset(size.width * 0.9f - bar, 0f), size = Size(bar, size.height))
+        }
+        Spacer(Modifier.width(10.dp))
+        Text(
+            text = stringResource(
+                if (armed) R.string.overlay_release_to_pause else R.string.overlay_swipe_to_pause,
+                Pause.QUICK_MINUTES,
+            ),
+            style = MaterialTheme.typography.labelLarge,
+            color = if (armed) StatusColors.warning else lerp(idle, StatusColors.warning, progress() * 0.6f),
+        )
+    }
+}
+
+/** Amber badge whose two bars grow in, with the same square ripple as the sent badge. */
+@Composable
+private fun PauseBadge(label: String) {
+    val pop = remember { Animatable(0.8f) }
+    val bars = remember { Animatable(0f) }
+    val ripple = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        launch { pop.animateTo(1f, spring(dampingRatio = 0.42f, stiffness = 480f)) }
+        launch { ripple.animateTo(1f, tween(700, easing = LinearOutSlowInEasing)) }
+        delay(90)
+        bars.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = 520f))
+    }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.semantics {
+            liveRegion = LiveRegionMode.Polite
+            contentDescription = label
+        },
+    ) {
+        Box(Modifier.size(150.dp), contentAlignment = Alignment.Center) {
+            Canvas(Modifier.fillMaxSize()) {
+                val p = ripple.value
+                if (p < 1f) {
+                    val side = BADGE_SIZE.dp.toPx() * (1f + 0.75f * p)
+                    drawRect(
+                        color = StatusColors.warning.copy(alpha = 0.7f * (1f - p)),
+                        topLeft = Offset((size.width - side) / 2f, (size.height - side) / 2f),
+                        size = Size(side, side),
+                        style = Stroke(width = 3.dp.toPx()),
+                    )
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .size(BADGE_SIZE.dp)
+                    .graphicsLayer {
+                        scaleX = pop.value
+                        scaleY = pop.value
+                    }
+                    .background(StatusColors.warning),
+                contentAlignment = Alignment.Center,
+            ) {
+                Canvas(Modifier.size(36.dp)) {
+                    val t = bars.value
+                    val bar = size.width * 0.3f
+                    val height = size.height * t
+                    val top = (size.height - height) / 2f
+                    drawRect(MonColors.bg, topLeft = Offset(size.width * 0.08f, top), size = Size(bar, height))
+                    drawRect(MonColors.bg, topLeft = Offset(size.width * 0.92f - bar, top), size = Size(bar, height))
+                }
+            }
+        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = Color.White.copy(alpha = 0.85f),
+            modifier = Modifier.graphicsLayer { alpha = bars.value.coerceIn(0f, 1f) },
         )
     }
 }

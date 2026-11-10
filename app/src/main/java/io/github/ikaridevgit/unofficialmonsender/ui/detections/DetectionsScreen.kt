@@ -11,7 +11,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import io.github.ikaridevgit.unofficialmonsender.ui.pause.PauseDialog
+import io.github.ikaridevgit.unofficialmonsender.ui.pause.PausedCard
+import io.github.ikaridevgit.unofficialmonsender.ui.pause.rememberNow
 import androidx.compose.ui.unit.DpOffset
 import androidx.core.net.toUri
 import io.github.ikaridevgit.unofficialmonsender.ui.components.linkOriginLabel
@@ -76,6 +80,17 @@ fun DetectionsScreen(viewModel: SettingsViewModel) {
     val serviceRunning by viewModel.detectionRunning.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val now = rememberNow()
+    val pause = settings?.activePause(now)
+    var pauseDialog by rememberSaveable { mutableStateOf(false) }
+    if (pauseDialog) {
+        PauseDialog(
+            active = pause,
+            onPause = viewModel::setPause,
+            onResume = { viewModel.setPause(null) },
+            onDismiss = { pauseDialog = false },
+        )
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -85,6 +100,19 @@ fun DetectionsScreen(viewModel: SettingsViewModel) {
             modifier = Modifier.fillMaxSize(),
             contentPadding = padding,
         ) {
+            if (pause != null) {
+                item(key = "paused") {
+                    Column(Modifier.animateItem()) {
+                        Spacer(Modifier.height(16.dp))
+                        PausedCard(
+                            pause = pause,
+                            now = now,
+                            onChange = { pauseDialog = true },
+                            onResume = { viewModel.setPause(null) },
+                        )
+                    }
+                }
+            }
             if (!serviceRunning) {
                 item { Spacer(Modifier.height(16.dp)) }
                 item { DetectionOffCard() }

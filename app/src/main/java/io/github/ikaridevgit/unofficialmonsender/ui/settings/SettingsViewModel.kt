@@ -12,6 +12,7 @@ import io.github.ikaridevgit.unofficialmonsender.appContainer
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.ConnectionState
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.PairingState
 import io.github.ikaridevgit.unofficialmonsender.data.settings.AppSettings
+import io.github.ikaridevgit.unofficialmonsender.data.settings.Pause
 import io.github.ikaridevgit.unofficialmonsender.detection.CopyDetectionService
 import io.github.ikaridevgit.unofficialmonsender.detection.DetectionEntry
 import io.github.ikaridevgit.unofficialmonsender.link.Links
@@ -76,6 +77,8 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     fun copiedByApp(text: String) = container.linkSender.copiedByApp(text)
 
     fun clearLog() = container.detectionLog.clear()
+
+    fun setPause(pause: Pause?) = container.pauseDetection(pause)
 
     private val _supportedDomains = MutableStateFlow<List<String>>(emptyList())
     val supportedDomains: StateFlow<List<String>> = _supportedDomains.asStateFlow()

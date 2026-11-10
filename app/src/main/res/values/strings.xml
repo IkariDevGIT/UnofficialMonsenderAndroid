@@ -115,6 +115,59 @@
     <string name="tile_detail">Send the link on your clipboard from quick settings. Works without copy detection.</string>
     <string name="message_tile_added">Tile added to quick settings</string>
 
+    <string name="pause_row_title">Pause detection</string>
+    <string name="pause_row_detail">Stop noticing copies for a while</string>
+    <string name="pause_title">Pause copy detection</string>
+    <string name="pause_explanation">While paused, the app doesn\'t notice copies and doesn\'t read the clipboard at all. Sharing to the app and the quick settings tile still work.</string>
+    <string name="pause_until_resumed">Until I turn it back on</string>
+    <string name="pause_custom">Custom</string>
+    <string name="paused_title">Copy detection paused</string>
+    <string name="paused_left">%1$s left of %2$s</string>
+    <string name="paused_indefinite">Until you turn it back on</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_resume">Resume</string>
+    <string name="action_change">Change</string>
+    <plurals name="pause_seconds">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
+    <plurals name="pause_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <plurals name="pause_hours">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+    <plurals name="pause_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="pause_months">
+        <item quantity="one">%d month</item>
+        <item quantity="other">%d months</item>
+    </plurals>
+    <plurals name="pause_unit_seconds">
+        <item quantity="one">second</item>
+        <item quantity="other">seconds</item>
+    </plurals>
+    <plurals name="pause_unit_minutes">
+        <item quantity="one">minute</item>
+        <item quantity="other">minutes</item>
+    </plurals>
+    <plurals name="pause_unit_hours">
+        <item quantity="one">hour</item>
+        <item quantity="other">hours</item>
+    </plurals>
+    <plurals name="pause_unit_days">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
+    <plurals name="pause_unit_months">
+        <item quantity="one">month</item>
+        <item quantity="other">months</item>
+    </plurals>
+
     <string name="apps_title">Apps</string>
     <string name="apps_explanation">Choose which apps can trigger the prompt when you copy a link.</string>
     <string name="apps_mode_any">All apps</string>
@@ -187,6 +240,10 @@
     <string name="overlay_swipe_to_send">Swipe up to send</string>
     <string name="overlay_release_to_send">Release to send</string>
     <string name="overlay_tap_to_dismiss">Tap here to dismiss</string>
+    <string name="overlay_swipe_to_pause">Swipe down to pause for %1$d min</string>
+    <string name="overlay_release_to_pause">Release to pause for %1$d min</string>
+    <string name="overlay_action_pause">Pause %1$d min</string>
+    <string name="overlay_paused">Detection paused for %1$d min</string>
     <string name="overlay_sending">Sending…</string>
     <string name="overlay_sent">Added to MonLoader\'s queue</string>
     <string name="overlay_copied_from">Copied from %1$s</string>

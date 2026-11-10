@@ -5,6 +5,7 @@ import io.github.ikaridevgit.unofficialmonsender.data.monloader.MonLoaderApi
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.MonLoaderRepository
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.PairingManager
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.SiteCatalog
+import io.github.ikaridevgit.unofficialmonsender.data.settings.Pause
 import io.github.ikaridevgit.unofficialmonsender.data.settings.SettingsRepository
 import io.github.ikaridevgit.unofficialmonsender.detection.DetectionLog
 import io.github.ikaridevgit.unofficialmonsender.detection.JobTracker
@@ -31,6 +32,10 @@ class AppContainer(context: Context) {
     val detectionLog = DetectionLog(File(context.filesDir, "detections.json"), appScope)
     val jobTracker = JobTracker(detectionLog, monLoader, appScope)
     val linkSender = LinkSender(detectionLog, monLoader, jobTracker, appScope)
+
+    fun pauseDetection(pause: Pause?) {
+        appScope.launch { settings.update { it.copy(pause = pause) } }
+    }
 
     init {
         detectionLog.unfinishedJobs().forEach { (entry, job) -> jobTracker.track(entry, job) }

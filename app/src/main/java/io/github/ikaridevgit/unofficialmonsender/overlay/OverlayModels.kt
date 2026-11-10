@@ -37,5 +37,6 @@ sealed interface OverlayPhase {
     data object Ready : OverlayPhase
     data object Sending : OverlayPhase
     data object Sent : OverlayPhase
+    data object Paused : OverlayPhase
     data class Failed(val reason: SendFailure, val detail: String?) : OverlayPhase
 }
