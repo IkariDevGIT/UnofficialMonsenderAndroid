@@ -50,7 +50,17 @@ class CopyDetectionService : AccessibilityService() {
         listenedEvents = serviceInfo?.eventTypes ?: 0
         _running.value = true
         scope.launch {
-            appContainer.settings.settings.map { it.pause }.distinctUntilChanged().collectLatest(::followPause)
+            appContainer.settings.settings
+                .map { it.detectionEnabled to it.pause }
+                .distinctUntilChanged()
+                .collectLatest { (enabled, pause) ->
+                    if (enabled) {
+                        followPause(pause)
+                    } else {
+                        listen(false)
+                        awaitCancellation()
+                    }
+                }
         }
     }
 
