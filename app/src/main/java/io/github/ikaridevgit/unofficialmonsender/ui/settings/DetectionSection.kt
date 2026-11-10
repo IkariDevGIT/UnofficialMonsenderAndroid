@@ -79,6 +79,13 @@ fun DetectionSection(
                 trailing = { SubmenuHint(stringResource(R.string.pause_entry_change)) },
                 onClick = { pauseDialog = true },
             )
+            !settings.isConfigured -> SettingsRow(
+                title = stringResource(R.string.detection_unconfigured),
+                subtitle = stringResource(R.string.detection_unconfigured_detail),
+                leading = { StatusDot(StatusColors.warning) },
+                trailing = { SubmenuHint(stringResource(R.string.pause_entry)) },
+                onClick = { pauseDialog = true },
+            )
             else -> SettingsRow(
                 title = stringResource(R.string.detection_on),
                 subtitle = stringResource(R.string.detection_on_detail),

@@ -22,8 +22,8 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * Only real results are logged: a link that got the prompt, or one that couldn't because MonLoader
- * isn't set up. Copies the user's own filters skip are left out, as are false alarms.
+ * Only links that got the prompt are logged. [NOT_CONFIGURED] is no longer recorded and only
+ * exists so older log files still load; such entries are dropped when they do.
  */
 enum class DetectionOutcome { SHOWN, NOT_CONFIGURED }
 
@@ -97,19 +97,9 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
     fun add(sourcePackage: String?, url: String, origin: LinkOrigin = LinkOrigin.COPY): Long? =
         put(DetectionEntry(ids.incrementAndGet(), System.currentTimeMillis(), sourcePackage, url, DetectionOutcome.SHOWN, Delivery.Waiting, origin))
 
-    /**
-     * Records that a copy couldn't be sent because MonLoader isn't set up, without the link itself.
-     * Only the latest such entry is kept.
-     */
-    fun notConfigured(sourcePackage: String?): Long? =
-        put(DetectionEntry(ids.incrementAndGet(), System.currentTimeMillis(), sourcePackage, null, DetectionOutcome.NOT_CONFIGURED))
-
     private fun put(entry: DetectionEntry): Long? {
         if (!enabled) return null
-        _entries.update { list ->
-            val kept = if (entry.outcome == DetectionOutcome.NOT_CONFIGURED) list.filter { it.outcome != DetectionOutcome.NOT_CONFIGURED } else list
-            (listOf(entry) + kept).take(MAX_ENTRIES)
-        }
+        _entries.update { (listOf(entry) + it).take(MAX_ENTRIES) }
         return entry.id
     }
 
@@ -163,13 +153,7 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
             file.delete()
             return emptyList()
         }
-        val cleaned = stored
-            .filter { it.isSettled }
-            .map { if (it.outcome == DetectionOutcome.NOT_CONFIGURED) it.copy(url = null) else it }
-            .let { list ->
-                val latest = list.firstOrNull { it.outcome == DetectionOutcome.NOT_CONFIGURED }
-                list.filter { it.outcome != DetectionOutcome.NOT_CONFIGURED || it === latest }
-            }
+        val cleaned = stored.filter { it.isSettled && it.outcome != DetectionOutcome.NOT_CONFIGURED }
         if (cleaned != stored) write(cleaned)
         return cleaned
     }

@@ -129,12 +129,12 @@ fun RowScope.SubmenuHint(text: String) {
 
 /** Top-of-screen status on the Detections tab while detection runs; tapping it opens the pause menu. */
 @Composable
-fun DetectionOnCard(onOpenPause: () -> Unit) {
+fun DetectionOnCard(configured: Boolean, onOpenPause: () -> Unit) {
     SettingsGroup {
         SettingsRow(
-            title = stringResource(R.string.detection_on),
-            subtitle = stringResource(R.string.detection_on_detail),
-            leading = { StatusDot(StatusColors.success) },
+            title = stringResource(if (configured) R.string.detection_on else R.string.detection_unconfigured),
+            subtitle = stringResource(if (configured) R.string.detection_on_detail else R.string.detection_unconfigured_detail),
+            leading = { StatusDot(if (configured) StatusColors.success else StatusColors.warning) },
             trailing = { SubmenuHint(stringResource(R.string.pause_entry)) },
             onClick = onOpenPause,
         )

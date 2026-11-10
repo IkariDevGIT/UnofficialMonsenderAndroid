@@ -8,7 +8,6 @@ import android.view.inputmethod.InputMethodManager
 import io.github.ikaridevgit.unofficialmonsender.appContainer
 import io.github.ikaridevgit.unofficialmonsender.data.settings.Pause
 import io.github.ikaridevgit.unofficialmonsender.link.Links
-import io.github.ikaridevgit.unofficialmonsender.link.SkipReason
 import io.github.ikaridevgit.unofficialmonsender.overlay.OverlayOptions
 import io.github.ikaridevgit.unofficialmonsender.overlay.OverlayRequest
 import io.github.ikaridevgit.unofficialmonsender.overlay.OverlayWindow
@@ -101,7 +100,7 @@ class CopyDetectionService : AccessibilityService() {
     private suspend fun handleCopy(source: String?) {
         val container = appContainer
         val settings = container.settings.current()
-        if (settings.activePause() != null || paused || overlay.isShowing) return
+        if (!settings.isConfigured || settings.activePause() != null || paused || overlay.isShowing) return
         if (!container.linkInspector.watches(settings, source)) return
 
         val log = container.detectionLog
@@ -115,11 +114,7 @@ class CopyDetectionService : AccessibilityService() {
         if (container.linkSender.isOwnCopy(clip.text)) return
         val url = Links.firstLink(clip.text) ?: return
         val check = container.linkInspector.inspect(url, source, explicit = false)
-        val skip = check.skipReason
-        if (skip != null) {
-            if (skip == SkipReason.NOT_CONFIGURED && check.loggable) log.notConfigured(source)
-            return
-        }
+        if (check.skipReason != null) return
         val id = if (check.loggable) log.add(source, url) else null
         overlay.show(
             request = OverlayRequest.from(check, sourceLabel = source?.let { appLabel(it) }),

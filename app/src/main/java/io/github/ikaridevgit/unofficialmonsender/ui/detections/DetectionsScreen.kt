@@ -121,7 +121,7 @@ fun DetectionsScreen(viewModel: SettingsViewModel) {
                 item(key = "running") {
                     Column(Modifier.animateItem()) {
                         Spacer(Modifier.height(16.dp))
-                        DetectionOnCard(onOpenPause = { pauseDialog = true })
+                        DetectionOnCard(configured = settings?.isConfigured != false, onOpenPause = { pauseDialog = true })
                     }
                 }
             }

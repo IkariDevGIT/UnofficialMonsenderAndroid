@@ -102,6 +102,8 @@
 
     <string name="detection_on">Copy detection is on</string>
     <string name="detection_on_detail">Copy a link in any app to get the send prompt</string>
+    <string name="detection_unconfigured">Set up MonLoader to get prompts</string>
+    <string name="detection_unconfigured_detail">Until you enter a server address, copies are ignored and the clipboard isn\'t read</string>
     <string name="detection_off">Copy detection is off</string>
     <string name="detection_off_detail">Android only lets apps read the clipboard while in use. Turning on the accessibility service lets this app notice when you copy a link.</string>
     <string name="detection_restricted_hint">If Android says the setting is restricted, open App info, tap ⋮ and choose \"Allow restricted settings\", then try again.</string>

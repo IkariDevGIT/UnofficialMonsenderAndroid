@@ -8,7 +8,7 @@ import io.github.ikaridevgit.unofficialmonsender.data.settings.AppSettings
 import io.github.ikaridevgit.unofficialmonsender.data.settings.SettingsRepository
 import io.github.ikaridevgit.unofficialmonsender.data.settings.SiteMode
 
-enum class SkipReason { NOT_CONFIGURED, APP_FILTERED, SITE_BLOCKED, UNSUPPORTED }
+enum class SkipReason {APP_FILTERED, SITE_BLOCKED, UNSUPPORTED }
 
 data class LinkCheck(
     val url: String,
@@ -38,15 +38,14 @@ class LinkInspector(
         if (early != null) return LinkCheck(url, host, SiteMatch(SiteSupport.UNKNOWN), early, loggable)
         val match = monLoader.siteFor(url)
         val image = Links.isImageUrl(url)
-        val reason = if (explicit) null else siteSkip(s, host, match, image) ?: SkipReason.NOT_CONFIGURED.takeIf { !s.isConfigured }
+        val reason = if (explicit) null else siteSkip(s, host, match, image)
         val site = if (image && match.support != SiteSupport.SUPPORTED) SiteMatch(SiteSupport.IMAGE) else match
         return LinkCheck(url, host, site, reason, loggable)
     }
 
     /**
      * App and site rules come first, so nothing from a filtered app or ignored site is ever logged,
-     * and MonLoader isn't asked about its sites for a copy that is skipped anyway. Only a link the
-     * site settings would watch can end up as "MonLoader isn't set up".
+     * and MonLoader isn't asked about its sites for a copy that is skipped anyway.
      */
     private fun ruleSkip(s: AppSettings, host: String, sourcePackage: String?): SkipReason? {
         if (sourcePackage != null && !appAllowed(s, sourcePackage)) return SkipReason.APP_FILTERED
