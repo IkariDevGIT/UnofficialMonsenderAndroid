@@ -31,7 +31,7 @@ import io.github.ikaridevgit.unofficialmonsender.ui.theme.MonsenderTheme
  * service may draw over any app without the "display over other apps" permission.
  */
 class OverlayWindow(private val service: AccessibilityService) {
-    private class Attached(val root: FrameLayout, val owner: OverlayOwner)
+    private class Attached(val root: FrameLayout, val owner: OverlayOwner, val onClosed: () -> Unit)
 
     private val windowManager = service.getSystemService(WindowManager::class.java)
     private var attached: Attached? = null
@@ -58,10 +58,7 @@ class OverlayWindow(private val service: AccessibilityService) {
                             onDelivery(Delivery.Sending)
                             service.appContainer.monLoader.send(request.url).also { onDelivery(Delivery.of(it)) }
                         },
-                        onClosed = {
-                            onClosed()
-                            if (attached?.root === root) dismiss()
-                        },
+                        onClosed = { if (attached?.root === root) dismiss() },
                         onPause = { service.appContainer.pauseDetection(Pause.quick()) },
                     )
                 }
@@ -74,17 +71,20 @@ class OverlayWindow(private val service: AccessibilityService) {
         owner.start()
         try {
             windowManager.addView(root, layoutParams())
-            attached = Attached(root, owner)
+            attached = Attached(root, owner, onClosed)
         } catch (_: RuntimeException) {
             owner.destroy()
+            onClosed()
         }
     }
 
+    /** Closes the prompt, however that happens, and lets the caller forget a link that wasn't sent. */
     fun dismiss() {
         val current = attached ?: return
         attached = null
         runCatching { windowManager.removeViewImmediate(current.root) }
         current.owner.destroy()
+        current.onClosed()
     }
 
     @Suppress("DEPRECATION")
