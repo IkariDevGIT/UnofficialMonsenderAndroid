@@ -15,6 +15,9 @@ An unofficial Android companion for [MonLoader](https://github.com/monbooru/monl
 
 This project is not affiliated with monbooru and is not made or maintained by the monbooru maintainers.
 
+> [!WARNING]
+> These screenshots were taken in version 0.3.0 and may be out of date.
+
 <table align="center">
   <tr>
     <td align="center"><img src=".github/assets/send-prompt.png" width="160" alt=""><br><sub><b>Send prompt</b><br>Copy a link, swipe up</sub></td>
