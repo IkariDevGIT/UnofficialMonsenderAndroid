@@ -6,7 +6,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/** Polls MonLoader's queue for each sent link until its job finishes, so the log shows the real outcome. */
+/**
+ * Polls MonLoader's queue for each sent link until its job finishes, so the log shows the real
+ * outcome. Stops as soon as the entry leaves the log.
+ */
 class JobTracker(
     private val log: DetectionLog,
     private val monLoader: MonLoaderRepository,
@@ -15,7 +18,7 @@ class JobTracker(
     fun track(entryId: Long, jobId: Long) {
         scope.launch {
             val started = SystemClock.elapsedRealtime()
-            while (true) {
+            while (log.contains(entryId)) {
                 val job = monLoader.job(jobId)
                 if (job != null) {
                     log.setJob(entryId, job)

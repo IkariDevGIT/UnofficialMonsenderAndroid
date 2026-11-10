@@ -128,6 +128,8 @@ class DetectionLog(private val file: File, scope: CoroutineScope) {
         _entries.update { list -> list.filterNot { it.id == id && it.delivery == Delivery.Waiting } }
     }
 
+    fun contains(id: Long): Boolean = _entries.value.any { it.id == id }
+
     /** Sent links whose job hadn't finished when the app last stopped. */
     fun unfinishedJobs(): List<Pair<Long, Long>> = _entries.value.mapNotNull { entry ->
         val queued = entry.delivery as? Delivery.Queued ?: return@mapNotNull null
