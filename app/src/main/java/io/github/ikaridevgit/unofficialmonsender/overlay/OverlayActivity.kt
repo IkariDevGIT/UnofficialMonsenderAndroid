@@ -24,10 +24,12 @@ import io.github.ikaridevgit.unofficialmonsender.util.appLabel
 import kotlinx.coroutines.launch
 
 /**
- * Shows [SendOverlay] for deliberate requests: text shared to the app, the quick settings tile
- * (which reads the clipboard once this activity has focus). Both are logged like detected copies.
+ * Shows [SendOverlay] for text shared to the app. Other apps can start this activity, so it never
+ * reads the clipboard itself; that is left to [TileOverlayActivity], which only this app can open.
  */
-class OverlayActivity : ComponentActivity() {
+open class OverlayActivity : ComponentActivity() {
+    protected open val readsClipboard = false
+
     private var request by mutableStateOf<OverlayRequest?>(null)
     private var options by mutableStateOf(OverlayOptions.DEFAULT)
     private var notice by mutableStateOf<Int?>(null)
@@ -93,11 +95,14 @@ class OverlayActivity : ComponentActivity() {
         request = null
         notice = null
         awaitingClipboard = false
-        if (intent.action == Intent.ACTION_SEND) {
-            present(intent.getStringExtra(Intent.EXTRA_TEXT), sourcePackage = referrerPackage(), origin = LinkOrigin.SHARE)
-        } else {
-            awaitingClipboard = true
-            if (hasWindowFocus()) readClipboard()
+        when {
+            readsClipboard -> {
+                awaitingClipboard = true
+                if (hasWindowFocus()) readClipboard()
+            }
+            intent.action == Intent.ACTION_SEND ->
+                present(intent.getStringExtra(Intent.EXTRA_TEXT), sourcePackage = referrerPackage(), origin = LinkOrigin.SHARE)
+            else -> finish()
         }
     }
 
@@ -127,7 +132,12 @@ class OverlayActivity : ComponentActivity() {
         referrer?.takeIf { it.scheme == "android-app" }?.host?.takeIf { it != packageName }
 
     companion object {
-        fun clipboardIntent(context: Context) = Intent(context, OverlayActivity::class.java)
+        fun clipboardIntent(context: Context) = Intent(context, TileOverlayActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
+}
+
+/** Sends the link on the clipboard, for the quick settings tile. Not exported. */
+class TileOverlayActivity : OverlayActivity() {
+    override val readsClipboard = true
 }
