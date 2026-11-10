@@ -64,6 +64,7 @@ The quick settings tile and the share menu work without copy detection.
 ## Planned
 
 - **Send options:** long-press the prompt to pick the monbooru gallery, a folder, extra tags or how many posts a search fetches before sending. A normal swipe keeps the defaults.
+- **Outbox:** links wait on your phone and go out on your terms. Hold them until MonLoader is reachable and send them as soon as it is, collect a few and send them together, or send at times you schedule. Nothing gets lost when you're away from home.
 
 ## Contributing
 
