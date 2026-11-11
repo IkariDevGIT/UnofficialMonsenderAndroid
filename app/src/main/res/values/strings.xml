@@ -49,6 +49,7 @@
     <string name="action_refresh">refresh</string>
     <string name="action_turn_on">Turn on</string>
     <string name="action_app_info">App info</string>
+    <string name="action_allow">Allow</string>
     <string name="action_got_it">Got it</string>
     <string name="action_send_again">Send again</string>
     <string name="action_copy_link">Copy link</string>
@@ -72,6 +73,8 @@
     <string name="connection_gallerydl">gallery-dl %1$s</string>
     <string name="connection_unreachable">Can\'t reach MonLoader</string>
     <string name="connection_unreachable_detail">Check the address and that this device is on the same network</string>
+    <string name="connection_no_local_network">No local network access</string>
+    <string name="connection_no_local_network_detail">Android blocks the app from your network until you allow it</string>
     <string name="connection_not_monloader">Not a MonLoader server</string>
     <string name="connection_not_monloader_detail">Something answered, but it isn\'t MonLoader</string>
     <string name="connection_reachable">MonLoader found</string>
@@ -90,6 +93,7 @@
     <string name="pairing_failed">Pairing didn\'t finish</string>
     <string name="pairing_failure_not_configured">Save a server address first</string>
     <string name="pairing_failure_unreachable">Couldn\'t reach MonLoader</string>
+    <string name="pairing_failure_no_local_network">Allow local network access to reach MonLoader</string>
     <string name="pairing_failure_already_paired">MonLoader already has a pairing for %1$s. Remove it in MonLoader under Settings → Authentication, then try again.</string>
     <string name="pairing_failure_denied">The request was denied in MonLoader</string>
     <string name="pairing_failure_expired">The request expired before it was approved</string>

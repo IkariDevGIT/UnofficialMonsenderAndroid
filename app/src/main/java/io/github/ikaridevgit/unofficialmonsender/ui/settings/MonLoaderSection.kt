@@ -37,6 +37,7 @@ import io.github.ikaridevgit.unofficialmonsender.data.monloader.PairingFailure
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.PairingManager
 import io.github.ikaridevgit.unofficialmonsender.data.monloader.PairingState
 import io.github.ikaridevgit.unofficialmonsender.data.settings.AppSettings
+import io.github.ikaridevgit.unofficialmonsender.link.Links
 import io.github.ikaridevgit.unofficialmonsender.ui.components.GroupDivider
 import io.github.ikaridevgit.unofficialmonsender.ui.components.MonButton
 import io.github.ikaridevgit.unofficialmonsender.ui.components.MonLink
@@ -60,12 +61,31 @@ fun MonLoaderSection(
     onAcknowledgePairing: () -> Unit,
     onUnpair: () -> Unit,
 ) {
+    val network = rememberLocalNetworkAccess()
+    val blocked = !network.granted && settings.isConfigured && settings.serverUrl != Links.TEST_SERVER
     SettingsGroup {
-        ServerAddressField(settings.serverUrl, onSaveServerUrl)
+        ServerAddressField(settings.serverUrl) { url ->
+            onSaveServerUrl(url).also { saved ->
+                if (saved && !url.trim().equals(Links.TEST_SERVER, ignoreCase = true)) network.request(onRefresh)
+            }
+        }
         GroupDivider()
-        ConnectionRow(connection, onRefresh)
+        ConnectionRow(
+            state = connection,
+            blocked = blocked && connection == ConnectionState.Unreachable,
+            onRefresh = onRefresh,
+            onAllow = { network.request(onRefresh) },
+        )
         GroupDivider()
-        PairingRow(settings, pairing, onPair, onCancelPairing, onAcknowledgePairing, onUnpair)
+        PairingRow(
+            settings = settings,
+            pairing = pairing,
+            blocked = blocked,
+            onPair = { if (blocked) network.request(onPair) else onPair() },
+            onCancel = onCancelPairing,
+            onAcknowledge = onAcknowledgePairing,
+            onUnpair = onUnpair,
+        )
     }
 }
 
@@ -114,7 +134,16 @@ private fun ServerAddressField(saved: String, onSave: (String) -> Boolean) {
 }
 
 @Composable
-private fun ConnectionRow(state: ConnectionState, onRefresh: () -> Unit) {
+private fun ConnectionRow(state: ConnectionState, blocked: Boolean, onRefresh: () -> Unit, onAllow: () -> Unit) {
+    if (blocked) {
+        SettingsRow(
+            title = stringResource(R.string.connection_no_local_network),
+            subtitle = stringResource(R.string.connection_no_local_network_detail),
+            leading = { StatusDot(MaterialTheme.colorScheme.error) },
+            trailing = { MonButton(stringResource(R.string.action_allow), onClick = onAllow, accent = true) },
+        )
+        return
+    }
     val (title, subtitle, color) = describe(state)
     SettingsRow(
         title = title,
@@ -161,6 +190,7 @@ private fun describe(state: ConnectionState): Triple<String, String?, Color> {
 private fun PairingRow(
     settings: AppSettings,
     pairing: PairingState,
+    blocked: Boolean,
     onPair: () -> Unit,
     onCancel: () -> Unit,
     onAcknowledge: () -> Unit,
@@ -192,7 +222,11 @@ private fun PairingRow(
             else -> Column {
                 SettingsRow(
                     title = stringResource(if (failure != null) R.string.pairing_failed else R.string.pairing_not_paired),
-                    subtitle = if (failure != null) pairingFailureText(failure.reason) else stringResource(R.string.pairing_not_paired_detail),
+                    subtitle = when {
+                        failure == null -> stringResource(R.string.pairing_not_paired_detail)
+                        failure.reason == PairingFailure.UNREACHABLE && blocked -> stringResource(R.string.pairing_failure_no_local_network)
+                        else -> pairingFailureText(failure.reason)
+                    },
                     leading = { StatusDot(if (failure != null) MonColors.error else MonColors.fgDim) },
                     trailing = {
                         MonButton(
