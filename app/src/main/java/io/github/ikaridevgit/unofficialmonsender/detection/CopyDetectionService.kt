@@ -88,9 +88,9 @@ class CopyDetectionService : AccessibilityService() {
         }
         if (overlay.isShowing || inCooldown()) return
         if (!signals.isCopySignal(event)) return
+        if (pending?.isActive == true) return
 
         val source = sourceApp(pkg)
-        pending?.cancel()
         pending = scope.launch {
             delay(SETTLE_DELAY_MS)
             handleCopy(source)
@@ -104,13 +104,7 @@ class CopyDetectionService : AccessibilityService() {
         if (!container.linkInspector.watches(settings, source)) return
 
         val log = container.detectionLog
-        val clip = probe.read()
-        lastProbeAt = SystemClock.elapsedRealtime()
-        if (clip == null) return
-        val fingerprint = clip.fingerprint()
-        if (fingerprint == lastClip) return
-        lastClip = fingerprint
-
+        val clip = readNewClip() ?: return
         if (container.linkSender.isOwnCopy(clip.text)) return
         val url = Links.firstLink(clip.text) ?: return
         val check = container.linkInspector.inspect(url, source, explicit = false)
@@ -122,6 +116,28 @@ class CopyDetectionService : AccessibilityService() {
             onDelivery = { delivery -> container.linkSender.report(id, delivery) },
             onClosed = { id?.let(log::promptClosed) },
         )
+    }
+
+    /**
+     * The first read comes early to keep the prompt quick, so if the copy hasn't landed yet and
+     * the old clip is still there, it is read once more a little later.
+     */
+    private suspend fun readNewClip(): ClipSnapshot? {
+        repeat(READ_ATTEMPTS) { attempt ->
+            if (attempt > 0) {
+                delay(RETRY_DELAY_MS)
+                if (paused || overlay.isShowing) return null
+            }
+            val clip = probe.read()
+            lastProbeAt = SystemClock.elapsedRealtime()
+            if (clip == null) return null
+            val fingerprint = clip.fingerprint()
+            if (fingerprint != lastClip) {
+                lastClip = fingerprint
+                return clip
+            }
+        }
+        return null
     }
 
     /**
@@ -155,7 +171,9 @@ class CopyDetectionService : AccessibilityService() {
         private val _running = MutableStateFlow(false)
         val running: StateFlow<Boolean> = _running.asStateFlow()
 
-        private const val SETTLE_DELAY_MS = 300L
+        private const val SETTLE_DELAY_MS = 150L
+        private const val RETRY_DELAY_MS = 300L
+        private const val READ_ATTEMPTS = 2
         private const val PAUSE_RECHECK_MS = 15_000L
         private const val PROBE_COOLDOWN_MS = 2500L
     }
