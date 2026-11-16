@@ -2,7 +2,10 @@ package io.github.ikaridevgit.unofficialmonsender.data.monloader
 
 import android.os.SystemClock
 import io.github.ikaridevgit.unofficialmonsender.link.Links
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -19,7 +22,7 @@ data class SiteMatch(val support: SiteSupport, val siteName: String? = null)
  * 30 minutes, or once invalidated, it is fetched again, but the stored list is only replaced when
  * that succeeds. Until then the old one keeps being used.
  */
-class SiteCatalog(private val api: MonLoaderApi, private val file: File) {
+class SiteCatalog(private val api: MonLoaderApi, private val file: File, private val scope: CoroutineScope) {
     @Serializable
     private class Stored(val base: String, val fetchedAt: Long, val sites: List<Site>)
 
@@ -28,6 +31,7 @@ class SiteCatalog(private val api: MonLoaderApi, private val file: File) {
     private var loaded = false
     private var invalidated = false
     private var lastFailure = 0L
+    private var refreshing: Job? = null
 
     /** How MonLoader handles the link's site. Whether it is a direct image is left to the caller. */
     suspend fun match(base: String, token: String, url: String): SiteMatch {
@@ -52,31 +56,55 @@ class SiteCatalog(private val api: MonLoaderApi, private val file: File) {
         lastFailure = 0L
     }
 
-    private suspend fun sites(base: String, token: String): List<Site> = mutex.withLock {
+    /**
+     * A stored list for this server is used right away, so a copied link never waits on the
+     * network; when it's out of date a new one is fetched in the background. Only without any
+     * list for this server does the caller wait for the fetch.
+     */
+    private suspend fun sites(base: String, token: String): List<Site> {
+        val stored = mutex.withLock { stored() }
+        if (stored != null && stored.base == base) {
+            if (stored.isStale()) refreshLater(base, token)
+            return stored.sites
+        }
+        return fetch(base, token) ?: stored?.sites.orEmpty()
+    }
+
+    private suspend fun stored(): Stored? {
         if (!loaded) {
             cache = withContext(Dispatchers.IO) { load() }
             loaded = true
         }
-        val stored = cache
-        val now = System.currentTimeMillis()
-        val fresh = stored != null && !invalidated && stored.base == base && now - stored.fetchedAt in 0 until TTL_MS
-        if (fresh) return stored.sites
+        return cache
+    }
+
+    private fun refreshLater(base: String, token: String) {
+        if (refreshing?.isActive == true) return
+        refreshing = scope.launch { fetch(base, token) }
+    }
+
+    /** Null when no new list could be fetched. */
+    private suspend fun fetch(base: String, token: String): List<Site>? = mutex.withLock {
+        stored()?.takeIf { it.base == base && !it.isStale() }?.let { return it.sites }
         val retryLater = SystemClock.elapsedRealtime() - lastFailure < RETRY_MS && lastFailure != 0L
-        if (base.isEmpty() || token.isEmpty() || retryLater) return stored?.sites.orEmpty()
+        if (base.isEmpty() || token.isEmpty() || retryLater) return null
 
         val response = api.listSites(base, token)
         val sites = if (response.isSuccessful) response.decode(SitesResponse.serializer())?.sites.orEmpty() else emptyList()
         if (sites.isEmpty()) {
             lastFailure = SystemClock.elapsedRealtime()
-            return stored?.sites.orEmpty()
+            return null
         }
-        val replacement = Stored(base, now, sites)
+        val replacement = Stored(base, System.currentTimeMillis(), sites)
         cache = replacement
         invalidated = false
         lastFailure = 0L
         withContext(Dispatchers.IO) { save(replacement) }
         sites
     }
+
+    private fun Stored.isStale(): Boolean =
+        invalidated || System.currentTimeMillis() - fetchedAt !in 0 until TTL_MS
 
     private fun load(): Stored? = runCatching {
         if (file.exists()) json.decodeFromString(Stored.serializer(), file.readText()) else null
