@@ -190,13 +190,13 @@ fun SendOverlay(
             haptics.confirm()
             phase = OverlayPhase.Paused
             pause()
-            scope.launch { offsetY.animateTo(heightPx, tween(360, easing = FastOutLinearInEasing)) }
+            scope.launch { offsetY.animateTo(heightPx, tween(260, easing = FastOutLinearInEasing)) }
             scope.launch {
-                pauseGlow.animateTo(1f, tween(160))
-                pauseGlow.animateTo(0f, tween(1100))
+                pauseGlow.animateTo(1f, tween(120))
+                pauseGlow.animateTo(0f, tween(500))
             }
             scope.launch {
-                delay(1400)
+                delay(750)
                 close()
             }
         }
@@ -215,10 +215,10 @@ fun SendOverlay(
                     is SendResult.Queued -> {
                         phase = OverlayPhase.Sent
                         launch {
-                            glow.animateTo(1f, tween(140))
-                            glow.animateTo(0f, tween(900))
+                            glow.animateTo(1f, tween(120))
+                            glow.animateTo(0f, tween(450))
                         }
-                        delay(1100)
+                        delay(600)
                         close()
                     }
                     is SendResult.Failed -> {
@@ -693,8 +693,8 @@ private fun PauseBadge(label: String) {
     val ripple = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
         launch { pop.animateTo(1f, spring(dampingRatio = 0.42f, stiffness = 480f)) }
-        launch { ripple.animateTo(1f, tween(700, easing = LinearOutSlowInEasing)) }
-        delay(90)
+        launch { ripple.animateTo(1f, tween(450, easing = LinearOutSlowInEasing)) }
+        delay(60)
         bars.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = 520f))
     }
     Column(
@@ -753,7 +753,7 @@ private fun PauseBadge(label: String) {
 @Composable
 private fun SendBadge(sent: Boolean, spinner: Color) {
     val label = stringResource(if (sent) R.string.overlay_sent else R.string.overlay_sending)
-    val fill by animateColorAsState(if (sent) StatusColors.success else MonColors.surface, tween(220), label = "badge")
+    val fill by animateColorAsState(if (sent) StatusColors.success else MonColors.surface, tween(160), label = "badge")
     val pop = remember { Animatable(1f) }
     val check = remember { Animatable(0f) }
     val ripple = remember { Animatable(0f) }
@@ -763,9 +763,9 @@ private fun SendBadge(sent: Boolean, spinner: Color) {
             pop.snapTo(0.8f)
             pop.animateTo(1f, spring(dampingRatio = 0.42f, stiffness = 480f))
         }
-        launch { ripple.animateTo(1f, tween(700, easing = LinearOutSlowInEasing)) }
-        delay(90)
-        check.animateTo(1f, tween(300, easing = FastOutSlowInEasing))
+        launch { ripple.animateTo(1f, tween(450, easing = LinearOutSlowInEasing)) }
+        delay(60)
+        check.animateTo(1f, tween(200, easing = FastOutSlowInEasing))
     }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
