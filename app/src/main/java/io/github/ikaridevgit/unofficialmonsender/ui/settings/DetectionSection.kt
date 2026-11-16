@@ -3,15 +3,24 @@ package io.github.ikaridevgit.unofficialmonsender.ui.settings
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import io.github.ikaridevgit.unofficialmonsender.ui.theme.MonColors
+import kotlin.math.roundToInt
 import io.github.ikaridevgit.unofficialmonsender.data.settings.Pause
 import io.github.ikaridevgit.unofficialmonsender.ui.pause.PauseSheet
 import io.github.ikaridevgit.unofficialmonsender.ui.pause.SubmenuHint
@@ -207,10 +216,51 @@ fun OverlaySection(settings: AppSettings, onUpdate: ((AppSettings) -> AppSetting
             )
         }
         GroupDivider()
+        AnimationSpeedRow(settings.animationSpeed) { speed -> onUpdate { it.copy(animationSpeed = speed) } }
+        GroupDivider()
         SwitchRow(
             title = stringResource(R.string.setting_haptics),
             checked = settings.haptics,
             onCheckedChange = { on -> onUpdate { it.copy(haptics = on) } },
+        )
+    }
+}
+
+@Composable
+private fun AnimationSpeedRow(saved: Float, onSave: (Float) -> Unit) {
+    var speed by remember(saved) { mutableFloatStateOf(saved) }
+    Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(R.string.setting_animation_speed),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = stringResource(R.string.animation_speed_value, speed),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MonColors.link,
+            )
+        }
+        Text(
+            text = stringResource(R.string.setting_animation_speed_detail),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Slider(
+            value = speed,
+            onValueChange = { speed = (it * 10).roundToInt() / 10f },
+            onValueChangeFinished = { onSave(speed) },
+            valueRange = AppSettings.MIN_ANIMATION_SPEED..AppSettings.MAX_ANIMATION_SPEED,
+            steps = ANIMATION_SPEED_STEPS,
+            colors = SliderDefaults.colors(
+                thumbColor = MonColors.link,
+                activeTrackColor = MonColors.accent,
+                inactiveTrackColor = MonColors.border,
+                activeTickColor = Color.Transparent,
+                inactiveTickColor = Color.Transparent,
+            ),
+            modifier = Modifier.padding(top = 4.dp),
         )
     }
 }
@@ -226,5 +276,8 @@ fun PrivacySection(settings: AppSettings, onUpdate: ((AppSettings) -> AppSetting
         )
     }
 }
+
+/** 0.5× to 2× in steps of 0.1. */
+private const val ANIMATION_SPEED_STEPS = 14
 
 private const val TROUBLESHOOTING_URL = "https://github.com/IkariDevGIT/UnofficialMonsenderAndroid#troubleshooting"

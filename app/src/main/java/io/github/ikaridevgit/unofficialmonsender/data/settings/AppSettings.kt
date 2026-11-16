@@ -17,6 +17,8 @@ data class AppSettings(
     val blockedHosts: Set<String> = emptySet(),
     val autoDismissSeconds: Int = 10,
     val haptics: Boolean = true,
+    /** How fast the send and pause animations play; 2 is twice as fast, 0.5 half as fast. */
+    val animationSpeed: Float = 1f,
     val welcomeSeen: Boolean = false,
     /** Off is the "Don't log, just send" mode: links are sent but never kept. */
     val keepLog: Boolean = true,
@@ -29,5 +31,7 @@ data class AppSettings(
 
     companion object {
         val AUTO_DISMISS_CHOICES = listOf(0, 5, 10, 20)
+        const val MIN_ANIMATION_SPEED = 0.5f
+        const val MAX_ANIMATION_SPEED = 2f
     }
 }

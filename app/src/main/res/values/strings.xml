@@ -220,6 +220,9 @@
     <string name="setting_auto_dismiss_detail">Hide the overlay if you don\'t interact with it</string>
     <string name="auto_dismiss_off">Off</string>
     <string name="auto_dismiss_seconds">%1$d s</string>
+    <string name="setting_animation_speed">Animation speed</string>
+    <string name="setting_animation_speed_detail">How fast the sent and paused animations play</string>
+    <string name="animation_speed_value">%1$.1f×</string>
     <string name="setting_haptics">Haptic feedback</string>
 
     <string name="recent_empty">Nothing here yet. (－ω－) zzZ</string>

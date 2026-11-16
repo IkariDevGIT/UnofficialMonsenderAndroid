@@ -26,10 +26,10 @@ data class OverlayRequest(
     }
 }
 
-data class OverlayOptions(val autoDismissSeconds: Int, val haptics: Boolean) {
+data class OverlayOptions(val autoDismissSeconds: Int, val haptics: Boolean, val animationSpeed: Float = 1f) {
     companion object {
         val DEFAULT = OverlayOptions(autoDismissSeconds = 10, haptics = true)
-        fun from(settings: AppSettings) = OverlayOptions(settings.autoDismissSeconds, settings.haptics)
+        fun from(settings: AppSettings) = OverlayOptions(settings.autoDismissSeconds, settings.haptics, settings.animationSpeed)
     }
 }
 

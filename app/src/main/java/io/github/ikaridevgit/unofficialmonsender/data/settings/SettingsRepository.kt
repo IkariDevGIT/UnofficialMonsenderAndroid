@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -55,6 +56,8 @@ class SettingsRepository(context: Context) {
         blockedHosts = this[Keys.blockedHosts].orEmpty(),
         autoDismissSeconds = this[Keys.autoDismiss] ?: 10,
         haptics = this[Keys.haptics] ?: true,
+        animationSpeed = (this[Keys.animationSpeed] ?: 1f)
+            .coerceIn(AppSettings.MIN_ANIMATION_SPEED, AppSettings.MAX_ANIMATION_SPEED),
         welcomeSeen = this[Keys.welcomeSeen] ?: false,
         keepLog = this[Keys.keepLog] ?: true,
         pause = readPause(),
@@ -97,6 +100,7 @@ class SettingsRepository(context: Context) {
         this[Keys.blockedHosts] = s.blockedHosts
         this[Keys.autoDismiss] = s.autoDismissSeconds
         this[Keys.haptics] = s.haptics
+        this[Keys.animationSpeed] = s.animationSpeed
         this[Keys.welcomeSeen] = s.welcomeSeen
         this[Keys.keepLog] = s.keepLog
         writePause(s.pause)
@@ -116,6 +120,7 @@ class SettingsRepository(context: Context) {
         val blockedHosts = stringSetPreferencesKey("blocked_hosts")
         val autoDismiss = intPreferencesKey("auto_dismiss_seconds")
         val haptics = booleanPreferencesKey("haptics")
+        val animationSpeed = floatPreferencesKey("animation_speed")
         val welcomeSeen = booleanPreferencesKey("welcome_seen")
         val keepLog = booleanPreferencesKey("keep_log")
         val pauseStarted = longPreferencesKey("pause_started")

@@ -110,6 +110,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 private const val SCRIM_ALPHA = 0.78f
 private const val DOWNWARD_RESISTANCE = 0.25f
@@ -148,6 +149,7 @@ fun SendOverlay(
     val offsetY = remember { Animatable(0f) }
     val glow = remember { Animatable(0f) }
     val pauseGlow = remember { Animatable(0f) }
+    val speed = options.animationSpeed
 
     LaunchedEffect(Unit) { reveal.animateTo(1f, tween(180, easing = LinearOutSlowInEasing)) }
 
@@ -190,13 +192,13 @@ fun SendOverlay(
             haptics.confirm()
             phase = OverlayPhase.Paused
             pause()
-            scope.launch { offsetY.animateTo(heightPx, tween(260, easing = FastOutLinearInEasing)) }
+            scope.launch { offsetY.animateTo(heightPx, tween(speed.ms(260), easing = FastOutLinearInEasing)) }
             scope.launch {
-                pauseGlow.animateTo(1f, tween(120))
-                pauseGlow.animateTo(0f, tween(500))
+                pauseGlow.animateTo(1f, tween(speed.ms(120)))
+                pauseGlow.animateTo(0f, tween(speed.ms(500)))
             }
             scope.launch {
-                delay(750)
+                delay(speed.ms(750).toLong())
                 close()
             }
         }
@@ -205,20 +207,20 @@ fun SendOverlay(
             if (!canSwipeNow(phase, closing)) return
             haptics.confirm()
             phase = OverlayPhase.Sending
-            scope.launch { offsetY.animateTo(-heightPx, tween(340, easing = FastOutLinearInEasing)) }
+            scope.launch { offsetY.animateTo(-heightPx, tween(speed.ms(340), easing = FastOutLinearInEasing)) }
             scope.launch {
-                glow.animateTo(1f, tween(160))
-                glow.animateTo(0.3f, tween(700))
+                glow.animateTo(1f, tween(speed.ms(160)))
+                glow.animateTo(0.3f, tween(speed.ms(700)))
             }
             scope.launch {
                 when (val result = send()) {
                     is SendResult.Queued -> {
                         phase = OverlayPhase.Sent
                         launch {
-                            glow.animateTo(1f, tween(120))
-                            glow.animateTo(0f, tween(450))
+                            glow.animateTo(1f, tween(speed.ms(120)))
+                            glow.animateTo(0f, tween(speed.ms(450)))
                         }
-                        delay(600)
+                        delay(speed.ms(600).toLong())
                         close()
                     }
                     is SendResult.Failed -> {
@@ -406,10 +408,10 @@ fun SendOverlay(
             ) {
                 AnimatedVisibility(
                     visible = phase == OverlayPhase.Sending || phase == OverlayPhase.Sent,
-                    enter = fadeIn(tween(160)) + scaleIn(tween(220), initialScale = 0.7f),
-                    exit = fadeOut(tween(160)),
+                    enter = fadeIn(tween(speed.ms(160))) + scaleIn(tween(speed.ms(220)), initialScale = 0.7f),
+                    exit = fadeOut(tween(speed.ms(160))),
                 ) {
-                    SendBadge(sent = phase == OverlayPhase.Sent, spinner = primary)
+                    SendBadge(sent = phase == OverlayPhase.Sent, spinner = primary, speed = speed)
                 }
             }
 
@@ -420,10 +422,10 @@ fun SendOverlay(
             ) {
                 AnimatedVisibility(
                     visible = phase == OverlayPhase.Paused,
-                    enter = fadeIn(tween(160)) + scaleIn(tween(220), initialScale = 0.7f),
-                    exit = fadeOut(tween(160)),
+                    enter = fadeIn(tween(speed.ms(160))) + scaleIn(tween(speed.ms(220)), initialScale = 0.7f),
+                    exit = fadeOut(tween(speed.ms(160))),
                 ) {
-                    PauseBadge(stringResource(R.string.overlay_paused, Pause.QUICK_MINUTES))
+                    PauseBadge(stringResource(R.string.overlay_paused, Pause.QUICK_MINUTES), speed)
                 }
             }
 
@@ -685,17 +687,23 @@ private fun PauseHint(armed: Boolean, progress: () -> Float) {
     }
 }
 
+/** A duration at the chosen animation speed. */
+private fun Float.ms(base: Int): Int = (base / this).roundToInt()
+
+/** A spring's stiffness at the chosen animation speed; a spring's duration scales with 1/√stiffness. */
+private fun Float.stiffness(base: Float): Float = base * this * this
+
 /** Amber badge whose two bars grow in, with the same square ripple as the sent badge. */
 @Composable
-private fun PauseBadge(label: String) {
+private fun PauseBadge(label: String, speed: Float) {
     val pop = remember { Animatable(0.8f) }
     val bars = remember { Animatable(0f) }
     val ripple = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
-        launch { pop.animateTo(1f, spring(dampingRatio = 0.42f, stiffness = 480f)) }
-        launch { ripple.animateTo(1f, tween(450, easing = LinearOutSlowInEasing)) }
-        delay(60)
-        bars.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = 520f))
+        launch { pop.animateTo(1f, spring(dampingRatio = 0.42f, stiffness = speed.stiffness(480f))) }
+        launch { ripple.animateTo(1f, tween(speed.ms(450), easing = LinearOutSlowInEasing)) }
+        delay(speed.ms(60).toLong())
+        bars.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = speed.stiffness(520f)))
     }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -751,9 +759,9 @@ private fun PauseBadge(label: String) {
  * pops, draws a checkmark and sends out a ripple, so success reads at a glance without any text.
  */
 @Composable
-private fun SendBadge(sent: Boolean, spinner: Color) {
+private fun SendBadge(sent: Boolean, spinner: Color, speed: Float) {
     val label = stringResource(if (sent) R.string.overlay_sent else R.string.overlay_sending)
-    val fill by animateColorAsState(if (sent) StatusColors.success else MonColors.surface, tween(160), label = "badge")
+    val fill by animateColorAsState(if (sent) StatusColors.success else MonColors.surface, tween(speed.ms(160)), label = "badge")
     val pop = remember { Animatable(1f) }
     val check = remember { Animatable(0f) }
     val ripple = remember { Animatable(0f) }
@@ -761,11 +769,11 @@ private fun SendBadge(sent: Boolean, spinner: Color) {
         if (!sent) return@LaunchedEffect
         launch {
             pop.snapTo(0.8f)
-            pop.animateTo(1f, spring(dampingRatio = 0.42f, stiffness = 480f))
+            pop.animateTo(1f, spring(dampingRatio = 0.42f, stiffness = speed.stiffness(480f)))
         }
-        launch { ripple.animateTo(1f, tween(450, easing = LinearOutSlowInEasing)) }
-        delay(60)
-        check.animateTo(1f, tween(200, easing = FastOutSlowInEasing))
+        launch { ripple.animateTo(1f, tween(speed.ms(450), easing = LinearOutSlowInEasing)) }
+        delay(speed.ms(60).toLong())
+        check.animateTo(1f, tween(speed.ms(200), easing = FastOutSlowInEasing))
     }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
