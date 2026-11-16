@@ -149,7 +149,7 @@ fun SendOverlay(
     val glow = remember { Animatable(0f) }
     val pauseGlow = remember { Animatable(0f) }
 
-    LaunchedEffect(Unit) { reveal.animateTo(1f, tween(280, easing = LinearOutSlowInEasing)) }
+    LaunchedEffect(Unit) { reveal.animateTo(1f, tween(180, easing = LinearOutSlowInEasing)) }
 
     fun close() {
         if (closing) return
